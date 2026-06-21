@@ -22,6 +22,7 @@ boot()
 {
 	case $(board_name) in
 	gemtek,w1700k-ubi|\
+	econet,xr1710g-ubi|\
 	gemtek,xr1710g-ubi)
 		hwmon=$(find_nct7802)
 
@@ -46,4 +47,3 @@ boot()
 		;;
 	esac
 }
-
