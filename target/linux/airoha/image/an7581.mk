@@ -86,9 +86,9 @@ define Device/gemtek_w1700k-ubi
   DEVICE_COMPAT_MESSAGE := Partition table has been changed to cooperate \
        with the vendor bootloader with regard to the BMT/BBT partition at \
        the end of flash. A reinstall including corrected chainloader is needed.
-  DEVICE_PACKAGES := airoha-en7581-mt7996-npu-firmware fitblk \
-		    kmod-hwmon-nct7802 kmod-mt7996-firmware wpad-openssl \
-		    rtl826x-firmware rtl8261c-firmware
+  DEVICE_PACKAGES := airoha-en7581-mt7996-npu-firmware ethtool-full fitblk kmod-i2c-an7581 \
+		    kmod-hwmon-nct7802 kmod-mt7996-firmware kmod-phy-realtek \
+		    wpad-basic-mbedtls rtl826x-firmware rtl8261c-firmware
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -114,9 +114,14 @@ define Device/gemtek_xr1710g-ubi
   DEVICE_ALT0_MODEL := XR1710G
   DEVICE_ALT0_VARIANT := (UBI)
   DEVICE_DTS := an7581-gemtek_xr1710g-ubi
+  DEVICE_COMPAT_VERSION := 2.0
+  DEVICE_COMPAT_MESSAGE := The XR1710G BMT/BBT boundary has changed. Install \
+       an XR1710G chainloader/U-Boot using the new layout first, then boot \
+       recovery/initramfs and fully recreate UBI. A normal sysupgrade that \
+       preserves configuration is unsafe.
   DEVICE_PACKAGES := airoha-en7581-mt7996-npu-firmware fitblk \
-		    apk-mbedtls kmod-i2c-an7581 kmod-hwmon-nct7802 \
-		    kmod-mt7996-firmware wpad-basic-mbedtls \
+		    apk-mbedtls ethtool-full kmod-i2c-an7581 kmod-hwmon-nct7802 \
+		    kmod-mt7996-firmware kmod-phy-realtek wpad-basic-mbedtls \
 		    rtl826x-firmware rtl8261n-firmware \
 		    luci \
 		    luci-app-firewall luci-app-mlo \
