@@ -131,7 +131,8 @@ define Device/gemtek_xr1710g-ubi
 		    luci-app-package-manager \
 		    luci-i18n-mlo-zh-cn \
 		    luci-mod-admin-full \
-		    luci-proto-ppp luci-theme-bootstrap \
+<<<<<<< HEAD
+		    luci-proto-ppp luci-theme-bootstrap luci-theme-glass \
 		    rpcd-mod-rrdns uhttpd uhttpd-mod-ubus
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
