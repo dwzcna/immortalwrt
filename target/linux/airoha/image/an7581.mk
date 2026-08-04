@@ -120,8 +120,11 @@ define Device/gemtek_xr1710g-ubi
        recovery/initramfs and fully recreate UBI. A normal sysupgrade that \
        preserves configuration is unsafe.
   DEVICE_PACKAGES := airoha-en7581-mt7996-npu-firmware fitblk \
-		    apk-mbedtls ethtool-full kmod-i2c-an7581 kmod-hwmon-nct7802 \
-		    kmod-mt7996-firmware kmod-phy-realtek wpad-basic-mbedtls \
+		    apk-mbedtls ethtool-full \
+		    ip-bridge ip-full iperf3 mdio-tools phytool tcpdump \
+		    kmod-i2c-an7581 kmod-hwmon-nct7802 \
+		    kmod-mt7996-firmware kmod-phy-realtek \
+		    kmod-airoha-net-debug wpad-basic-mbedtls \
 		    rtl826x-firmware rtl8261n-firmware \
 		    luci \
 		    luci-app-firewall luci-app-mlo \
