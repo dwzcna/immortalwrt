@@ -114,6 +114,7 @@ define Device/gemtek_xr1710g-ubi
   DEVICE_ALT0_MODEL := XR1710G
   DEVICE_ALT0_VARIANT := (UBI)
   DEVICE_DTS := an7581-gemtek_xr1710g-ubi
+  SUPPORTED_DEVICES += econet,xr1710g-ubi
   DEVICE_COMPAT_VERSION := 2.0
   DEVICE_COMPAT_MESSAGE := The XR1710G BMT/BBT boundary has changed. Install \
        an XR1710G chainloader/U-Boot using the new layout first, then boot \
@@ -137,7 +138,6 @@ define Device/gemtek_xr1710g-ubi
 		    luci-i18n-package-manager-zh-cn \
 		    luci-i18n-w1700k-fancontrol-zh-cn \
 		    luci-mod-admin-full \
-<<<<<<< HEAD
 		    luci-proto-ppp luci-theme-bootstrap luci-theme-glass \
 		    rpcd-mod-rrdns uhttpd uhttpd-mod-ubus
   UBINIZE_OPTS := -E 5
