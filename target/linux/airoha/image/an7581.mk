@@ -114,6 +114,9 @@ define Device/gemtek_xr1710g-ubi
   DEVICE_ALT0_MODEL := XR1710G
   DEVICE_ALT0_VARIANT := (UBI)
   DEVICE_DTS := an7581-gemtek_xr1710g-ubi
+||||||| parent of cad16170de (airoha: add support for Gemtek XR1710G)
+  DEVICE_ALT0_VARIANT := UBI
+  DEVICE_DTS := an7581-xr1710g-ubi
   SUPPORTED_DEVICES += econet,xr1710g-ubi
   DEVICE_COMPAT_VERSION := 2.0
   DEVICE_COMPAT_MESSAGE := The XR1710G BMT/BBT boundary has changed. Install \
@@ -154,6 +157,8 @@ define Device/gemtek_xr1710g-ubi
 	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
   ARTIFACTS := chainload-uboot.itb
   ARTIFACT/chainload-uboot.itb := an7581-chainloader gemtek_xr1710g
+||||||| parent of cad16170de (airoha: add support for Gemtek XR1710G)
+  IMAGE/sysupgrade.itb := append-kernel | fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
   SOC := an7581
 endef
 TARGET_DEVICES += gemtek_xr1710g-ubi
