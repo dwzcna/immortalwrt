@@ -106,3 +106,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&hsuart_pins>;
 };
+
+&gdm4 {
+	airoha,lan-port;
+};

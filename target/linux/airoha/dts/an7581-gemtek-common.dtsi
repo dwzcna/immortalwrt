@@ -290,7 +290,6 @@
 
 	nvmem-cells = <&wan_mac>;
 	nvmem-cell-names = "mac-address";
-	openwrt,netdev-name = "wan";
 };
 
 &eth_pcs {
@@ -306,7 +305,6 @@
 
 	nvmem-cells = <&lan_mac 0>;
 	nvmem-cell-names = "mac-address";
-	openwrt,netdev-name = "lan2";
 };
 
 &switch {
