@@ -4,18 +4,16 @@ REQUIRE_IMAGE_METADATA=1
 
 gemtek_factory_valid() {
 	local vol="$1"
-	local off mac
+	local mac
 
 	[ "$(hexdump -v -n 2 -e '2/1 "%02x"' "$vol")" = "9079" ] || return 1
 
-	for off in 0x5000 0x6000; do
-		mac="$(hexdump -v -s $((off)) -n 6 -e '6/1 "%02x"' "$vol")"
-		case "$mac" in
-		000000000000|ffffffffffff|?[13579bdf]*)
-			return 1
-			;;
-		esac
-	done
+	mac="$(hexdump -v -s $((0x5000)) -n 6 -e '6/1 "%02x"' "$vol")"
+	case "$mac" in
+	000000000000|ffffffffffff|?[13579bdf]*)
+		return 1
+		;;
+	esac
 }
 
 gemtek_mac_bytes() {
@@ -26,6 +24,7 @@ gemtek_mac_bytes() {
 # vendor partition, which the install leaves untouched. Rebuild it when it is
 # missing or empty, as after the chainloader formatted the ubi partition.
 gemtek_prepare_factory() {
+	local prefix="$1"
 	local ubidev vol mtd dsd ebs off eeprom wan lan fan serial mac
 	local blob="/tmp/factory.bin"
 
@@ -44,7 +43,7 @@ gemtek_prepare_factory() {
 	serial="$(echo "$dsd" | sed -n '/^serial_number=/{s///p;q}')"
 
 	case "$serial" in
-	XR1710G*) ;;
+	$prefix*) ;;
 	*)
 		v "factory: serial number '$serial' does not match, not rebuilding"
 		return 0
@@ -80,13 +79,12 @@ gemtek_prepare_factory() {
 	printf '%s' "$fan" | dd of="$blob" bs=4096 seek=7 conv=notrunc 2>/dev/null
 	printf '%s' "$serial" | dd of="$blob" bs=4096 seek=8 conv=notrunc 2>/dev/null
 
-	[ -n "$vol" ] || {
-		ubimkvol "/dev/$ubidev" -N factory -t static -s $((0x10000)) && \
-			vol="$(nand_find_volume "$ubidev" factory)"
-	}
-	[ -n "$vol" ] && ubiupdatevol "/dev/$vol" "$blob" && \
+	if [ -z "$vol" ]; then
+		ubimkvol "/dev/$ubidev" -N factory -t static -s $((0x10000)) || return 0
+		vol="$(nand_find_volume "$ubidev" factory)"
+	fi
+	ubiupdatevol "/dev/$vol" "$blob" && \
 		v "factory: rebuilt from the vendor partition (WAN $wan, LAN $lan)"
-	rm -f "$blob"
 }
 
 nokia_initial_setup()
@@ -122,11 +120,9 @@ platform_do_upgrade() {
 
 	case "$board" in
 		gemtek,xr1710g-ubi)
-			gemtek_prepare_factory
+			gemtek_prepare_factory XR1710G
 			fit_do_upgrade "$1"
 			;;
-		gemtek,w1700k-ubi|\
-		gemtek,xr1710g-ubi|\
 		nokia,xg-040g-md-ubi|\
 		quantum,q1000k-ubi)
 			fit_do_upgrade "$1"
