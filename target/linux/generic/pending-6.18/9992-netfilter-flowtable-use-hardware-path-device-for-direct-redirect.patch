@@ -22,9 +22,9 @@ Signed-off-by: Jihong Min <hurryman2212@gmail.com>
 Assisted-by: Codex:GPT-5.6-sol
 Signed-off-by: Yanghan Ye <yyh94306@gmail.com>
 ---
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -8,6 +8,7 @@
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -7,6 +7,7 @@
  #include <linux/spinlock.h>
  #include <linux/netfilter/nf_conntrack_common.h>
  #include <linux/netfilter/nf_tables.h>
@@ -74,16 +74,17 @@ Signed-off-by: Yanghan Ye <yyh94306@gmail.com>
  static void nft_br_vlan_dev_fill_forward_path(const struct nft_pktinfo *pkt,
  					      struct net_device_path_ctx *ctx)
  {
-@@ -211,12 +247,17 @@
- 		case DEV_PATH_ETHERNET:
+@@ -196,6 +232,7 @@
+ 		case DEV_PATH_IEEE80211:
  		case DEV_PATH_DSA:
  		case DEV_PATH_VLAN:
 +		case DEV_PATH_LAG:
  		case DEV_PATH_PPPOE:
  			if (is_zero_ether_addr(info->h_source))
  				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
- 
- 			if (path->type == DEV_PATH_ETHERNET)
+@@ -203,6 +240,10 @@
+ 			if (path->type == DEV_PATH_ETHERNET ||
+ 			    path->type == DEV_PATH_IEEE80211)
  				break;
 +			if (path->type == DEV_PATH_LAG) {
 +				info->outdev = path->dev;
@@ -92,8 +93,8 @@ Signed-off-by: Yanghan Ye <yyh94306@gmail.com>
  			if (path->type == DEV_PATH_DSA) {
  				i = stack->num_paths;
  				break;
-@@ -311,12 +352,15 @@
- 		.dev	= dst->dev,
+@@ -308,12 +349,15 @@
+ 		.ieee80211 = true,
  	};
  	struct nft_forward_info info = {};
 +	struct flow_keys flow;
@@ -105,6 +106,6 @@ Signed-off-by: Yanghan Ye <yyh94306@gmail.com>
  	memset(ha, 0, sizeof(ha));
 +	nft_flow_keys_init(ct, dir, &flow);
 +	ctx.flow = &flow;
- 
- 	if (nft_flow_offload_is_bridging(pkt->skb)) {
- 		enum ip_conntrack_info pkt_ctinfo;
+ 	if (nft_flow_offload_is_bridging(pkt->skb) &&
+ 	    skb_mac_header_was_set(pkt->skb)) {
+ 		eth = eth_hdr(pkt->skb);
