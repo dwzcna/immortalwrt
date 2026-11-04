@@ -1,0 +1,108 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+
+#include "an7581-gemtek-common.dtsi"
+
+/ {
+	model = "Gemtek W1700K (OpenWrt U-Boot layout)";
+	compatible = "gemtek,w1700k-ubi", "airoha,an7581", "airoha,en7581";
+
+	leds {
+		led-4 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_LAN;
+			function-enumerator = <3>;
+			gpios = <&en7581_pinctrl 9 GPIO_ACTIVE_LOW>;
+		};
+
+		led-5 {
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_LAN;
+			function-enumerator = <3>;
+			gpios = <&en7581_pinctrl 10 GPIO_ACTIVE_LOW>;
+		};
+
+		led-6 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_LAN;
+			function-enumerator = <4>;
+			gpios = <&en7581_pinctrl 27 GPIO_ACTIVE_LOW>;
+		};
+
+		led-7 {
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_LAN;
+			function-enumerator = <4>;
+			gpios = <&en7581_pinctrl 28 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+&en7581_pinctrl {
+	uart2_pins: uart2-pins {
+		mux {
+			function = "uart";
+			groups = "uart2";
+		};
+	};
+
+	hsuart_pins: hsuart-pins {
+		mux {
+			function = "uart";
+			groups = "hsuart";
+		};
+	};
+};
+
+&phy5 {
+	leds {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		led@2 {
+			reg = <2>;
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_LAN;
+			function-enumerator = <2>;
+		};
+
+		led@3 {
+			reg = <3>;
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_LAN;
+			function-enumerator = <2>;
+		};
+	};
+};
+
+&phy8 {
+	leds {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		led@2 {
+			reg = <2>;
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_WAN;
+		};
+
+		led@3 {
+			reg = <3>;
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_WAN;
+		};
+	};
+};
+
+&uart2 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart2_pins>;
+};
+
+&hsuart3 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&hsuart_pins>;
+};
