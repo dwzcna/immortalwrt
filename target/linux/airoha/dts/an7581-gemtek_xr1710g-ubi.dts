@@ -85,3 +85,48 @@
 	function-enumerator = <4>;
 	active-low;
 };
+
+/* Keep the validated XR1710G PHY and dual-HIF wiring policies. */
+&en7581_pinctrl {
+	gpio-ranges = <&en7581_pinctrl 0 13 47>;
+
+	pcie0-rst-pins {
+		mux {
+			function = "pcie_reset";
+			groups = "pcie_reset0", "pcie_reset1";
+		};
+
+		conf {
+			pins = "pcie_reset0", "pcie_reset1";
+		};
+	};
+
+	pcie2-rst-pins {
+		mux {
+			function = "pcie_reset";
+			groups = "pcie_reset2";
+		};
+	};
+};
+
+&pcie0 {
+	max-link-speed = <3>;
+};
+
+&pcie2 {
+	max-link-speed = <2>;
+	airoha,wait-for-pcie0-perst;
+	airoha,scu = <&scuclk>;
+};
+
+&afe {
+	status = "disabled";
+};
+
+&phy5 {
+	realtek,patch-rtk-serdes;
+};
+
+&phy8 {
+	realtek,patch-rtk-serdes;
+};
