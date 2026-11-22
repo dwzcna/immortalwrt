@@ -49,7 +49,7 @@ Assisted-by: Codex:GPT-5.6-sol
  				  struct ieee80211_chanctx_conf *ctx);
 --- a/net/mac80211/sta_info.c
 +++ b/net/mac80211/sta_info.c
-@@ -3724,6 +3724,60 @@
+@@ -3724,6 +3724,59 @@
  	return IEEE80211_STA_RX_BW_80;
  }
  
@@ -79,9 +79,8 @@ Assisted-by: Codex:GPT-5.6-sol
 +	if (!conf || !conf->chanreq.oper.chan)
 +		goto out;
 +
-+	bw = min(ieee80211_sta_bw_capability(link_sta,
-+					   conf->chanreq.oper.chan->band),
-+		 link_sta->rx_omi_bw_rx);
++	bw = _ieee80211_sta_cap_rx_bw(link_sta,
++				      &conf->chanreq.oper);
 +out:
 +	rcu_read_unlock();
 +	return bw;

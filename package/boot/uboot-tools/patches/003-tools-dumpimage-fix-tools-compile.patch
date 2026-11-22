@@ -46,8 +46,8 @@ Signed-off-by: Scott Mercer <TheRootEd24@gmail.com>
  # Enable all the config-independent tools
  ifneq ($(HOST_TOOLS_ALL),)
  CONFIG_ARCH_KIRKWOOD = y
-@@ -261,15 +281,10 @@ hostprogs-$(CONFIG_MIPS) += mips-relocs
- hostprogs-$(CONFIG_ASN1_COMPILER)	+= asn1_compiler
+@@ -281,15 +301,9 @@ hostprogs-always-$(CONFIG_MIPS) += mips-relocs
+ hostprogs-always-$(CONFIG_ASN1_COMPILER)	+= asn1_compiler
  HOSTCFLAGS_asn1_compiler.o = -idirafter $(srctree)/include
  
 -HOSTCFLAGS_mkeficapsule.o += \
@@ -58,15 +58,14 @@ Signed-off-by: Scott Mercer <TheRootEd24@gmail.com>
 -	generated/lib/sha1.o \
 -	$(LIBFDT_OBJS) \
 -	mkeficapsule.o
--hostprogs-$(CONFIG_TOOLS_MKEFICAPSULE) += mkeficapsule
+-hostprogs-always-$(CONFIG_TOOLS_MKEFICAPSULE) += mkeficapsule
 +HOSTCFLAGS_mkeficapsule.o +=
 +HOSTLDLIBS_mkeficapsule +=
 +mkeficapsule-objs :=
-+hostprogs-$(CONFIG_TOOLS_MKEFICAPSULE) +=
++hostprogs-always-$(CONFIG_TOOLS_MKEFICAPSULE) +=
  
- mkfwumdata-objs := mkfwumdata.o generated/lib/crc32.o
- HOSTLDLIBS_mkfwumdata += -luuid
-@@ -330,10 +345,9 @@ HOST_EXTRACFLAGS += -include $(srctree)/
+ include tools/fwumdata_src/fwumdata.mk
+@@ -345,12 +364,10 @@ HOST_EXTRACFLAGS += -include $(srctree)/
  		-I$(srctree)/scripts/dtc/libfdt \
  		-I$(srctree)/tools \
  		-DUSE_HOSTCC \
@@ -74,8 +73,10 @@ Signed-off-by: Scott Mercer <TheRootEd24@gmail.com>
 -		-D_GNU_SOURCE
 +		-D__KERNEL_STRICT_NAMES
  
+ ifeq ($(CROSS_BUILD_TOOLS),)
 -__build:	$(LOGO-y)
 +__build:	$(LOGO-n)
+ endif
  
  $(LOGO_H):	$(obj)/bmp_logo $(LOGO_BMP)
  	$(obj)/bmp_logo --gen-info $(LOGO_BMP) > $@
