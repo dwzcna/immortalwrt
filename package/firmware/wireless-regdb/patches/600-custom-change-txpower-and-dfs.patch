@@ -12,11 +12,11 @@
  	(5725 - 5850 @ 80), (33)
  	# 60 GHz band channels 1,4: 28dBm, channels 2,3: 44dBm
  	# ref: http://www.miit.gov.cn/n11293472/n11505629/n11506593/n11960250/n11960606/n11960700/n12330791.files/n12330790.pdf
-@@ -2039,14 +2038,12 @@ country US: DFS-FCC
+@@ -2079,14 +2078,12 @@ country US: DFS-FCC
  	(920 - 928 @ 8), (30)
  	(2400 - 2472 @ 40), (30)
- 	# 5.15 ~ 5.25 GHz: 30 dBm for master mode, 23 dBm for clients
--	(5150 - 5250 @ 80), (23), AUTO-BW
+ 	# Local target: approximate the W1700K UNII-1 AP grant to 29 dBm
+-	(5150 - 5250 @ 80), (29), AUTO-BW
 -	(5250 - 5350 @ 80), (24), DFS, AUTO-BW
 +	(5150 - 5350 @ 160), (30)
  	# This range ends at 5725 MHz, but channel 144 extends to 5730 MHz.
