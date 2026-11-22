@@ -4339,3 +4339,8 @@ diff -Naur a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
 +source "drivers/crypto/inside-secure/eip93/Kconfig"
  
  endif # CRYPTO_HW
+--- a/drivers/crypto/Makefile
++++ b/drivers/crypto/Makefile
+@@ -48,1 +48,1 @@
+-obj-$(CONFIG_CRYPTO_DEV_SAFEXCEL) += inside-secure/
++obj-y += inside-secure/
