@@ -1,0 +1,192 @@
+--- a/drivers/net/phy/sfp.h
++++ b/drivers/net/phy/sfp.h
+@@ -37,6 +37,7 @@
+ void sfp_module_remove(struct sfp_bus *bus);
+ int sfp_module_start(struct sfp_bus *bus);
+ void sfp_module_stop(struct sfp_bus *bus);
++const struct sfp_module_caps *sfp_get_module_caps(struct sfp_bus *bus);
+ struct sfp_bus *sfp_register_socket(struct device *dev, struct sfp *sfp,
+ 				    const struct sfp_socket_ops *ops);
+ void sfp_unregister_socket(struct sfp_bus *bus);
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -240,7 +240,7 @@
+ 	if (!tb[NFTA_FLOW_TABLE_NAME])
+ 		return -EINVAL;
+ 
+-	flowtable = nft_flowtable_lookup(ctx->net, ctx->table,
++	flowtable = nft_flowtable_lookup(ctx->table,
+ 					 tb[NFTA_FLOW_TABLE_NAME], genmask);
+ 	if (IS_ERR(flowtable))
+ 		return PTR_ERR(flowtable);
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -841,6 +841,7 @@
+ 	DEV_PATH_PPPOE,
+ 	DEV_PATH_DSA,
+ 	DEV_PATH_MTK_WDMA,
++	DEV_PATH_IEEE80211,
+ };
+ 
+ struct net_device_path {
+@@ -894,6 +895,8 @@
+ 		u16		id;
+ 		__be16		proto;
+ 	} vlan[NET_DEVICE_PATH_VLAN_MAX];
++
++	bool			ieee80211;
+ };
+ 
+ enum tc_setup_type {
+--- a/include/net/flow.h
++++ b/include/net/flow.h
+@@ -33,6 +33,7 @@
+ 	int     flowic_l3mdev;
+ 	__u32	flowic_mark;
+ 	__u8	flowic_tos;
++	__u8	flowic_dscp;
+ 	__u8	flowic_scope;
+ 	__u8	flowic_proto;
+ 	__u8	flowic_flags;
+@@ -69,6 +70,7 @@
+ #define flowi4_l3mdev		__fl_common.flowic_l3mdev
+ #define flowi4_mark		__fl_common.flowic_mark
+ #define flowi4_tos		__fl_common.flowic_tos
++#define flowi4_dscp		__fl_common.flowic_dscp
+ #define flowi4_scope		__fl_common.flowic_scope
+ #define flowi4_proto		__fl_common.flowic_proto
+ #define flowi4_flags		__fl_common.flowic_flags
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -11687,3 +11687,10 @@
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Framework for packet filtering and classification");
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_NFTABLES);
++
++struct nf_hook_ops *nft_hook_find_ops_rcu(const struct nft_hook *hook,
++					  const struct net_device *dev)
++{
++	return hook->ops.dev == dev ? (struct nf_hook_ops *)&hook->ops : NULL;
++}
++EXPORT_SYMBOL_GPL(nft_hook_find_ops_rcu);
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1205,6 +1205,9 @@
+ 	struct rcu_head		rcu;
+ };
+ 
++struct nf_hook_ops *nft_hook_find_ops_rcu(const struct nft_hook *hook,
++					  const struct net_device *dev);
++
+ /**
+  *	struct nft_base_chain - nf_tables base chain
+  *
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -142,7 +142,7 @@
+ # flow table infrastructure
+ obj-$(CONFIG_NF_FLOW_TABLE)	+= nf_flow_table.o
+ nf_flow_table-objs		:= nf_flow_table_core.o nf_flow_table_ip.o \
+-				   nf_flow_table_offload.o nf_flow_table_xdp.o
++				   nf_flow_table_offload.o nf_flow_table_path.o nf_flow_table_xdp.o
+ nf_flow_table-$(CONFIG_NF_FLOW_TABLE_PROCFS) += nf_flow_table_procfs.o
+ ifeq ($(CONFIG_NF_FLOW_TABLE),m)
+ nf_flow_table-$(CONFIG_DEBUG_INFO_BTF_MODULES) += nf_flow_table_bpf.o
+--- a/drivers/net/phy/phy-c45.c
++++ b/drivers/net/phy/phy-c45.c
+@@ -1599,3 +1599,24 @@
+ 	.name           = "Generic Clause 45 PHY",
+ 	.read_status    = genphy_c45_read_status,
+ };
++/**
++ * genphy_c45_pma_soft_reset - software reset the PHY via Clause 45 PMA/PMD control register
++ * @phydev: target phy_device struct
++ *
++ * Return: 0 on success, negative errno on failure.
++ */
++int genphy_c45_pma_soft_reset(struct phy_device *phydev)
++{
++	int ret, val;
++
++	ret = phy_set_bits_mmd(phydev, MDIO_MMD_PMAPMD, MDIO_CTRL1,
++			       MDIO_CTRL1_RESET);
++	if (ret < 0)
++		return ret;
++
++	return phy_read_mmd_poll_timeout(phydev, MDIO_MMD_PMAPMD,
++					 MDIO_CTRL1, val,
++					 !(val & MDIO_CTRL1_RESET),
++					 5000, 600000, true);
++}
++EXPORT_SYMBOL_GPL(genphy_c45_pma_soft_reset);
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for Linux PHY drivers
+ 
+ libphy-y			:= phy.o phy-c45.o phy-core.o phy_device.o \
+-				   linkmode.o phy_link_topology.o
++				   linkmode.o phy_link_topology.o phy_caps.o
+ mdio-bus-y			+= mdio_bus.o mdio_device.o
+ 
+ ifdef CONFIG_MDIO_DEVICE
+--- a/include/linux/ethtool.h
++++ b/include/linux/ethtool.h
+@@ -203,6 +203,14 @@
+ 
+ void ethtool_rxfh_context_lost(struct net_device *dev, u32 context_id);
+ 
++struct link_mode_info {
++	int                             speed;
++	u8                              lanes;
++	u8                              duplex;
++};
++
++extern const struct link_mode_info link_mode_params[];
++
+ /* declare a link mode bitmap */
+ #define __ETHTOOL_DECLARE_LINK_MODE_MASK(name)		\
+ 	DECLARE_BITMAP(name, __ETHTOOL_LINK_MODE_MASK_NBITS)
+--- a/net/ethtool/common.h
++++ b/net/ethtool/common.h
+@@ -14,12 +14,6 @@
+ 
+ #define __SOF_TIMESTAMPING_CNT (const_ilog2(SOF_TIMESTAMPING_LAST) + 1)
+ 
+-struct link_mode_info {
+-	int				speed;
+-	u8				lanes;
+-	u8				duplex;
+-};
+-
+ struct genl_info;
+ 
+ extern const char
+@@ -31,7 +25,6 @@
+ extern const char
+ phy_tunable_strings[__ETHTOOL_PHY_TUNABLE_COUNT][ETH_GSTRING_LEN];
+ extern const char link_mode_names[][ETH_GSTRING_LEN];
+-extern const struct link_mode_info link_mode_params[];
+ extern const char netif_msg_class_names[][ETH_GSTRING_LEN];
+ extern const char wol_mode_names[][ETH_GSTRING_LEN];
+ extern const char sof_timestamping_names[][ETH_GSTRING_LEN];
+--- a/net/ethtool/common.c
++++ b/net/ethtool/common.c
+@@ -377,6 +377,7 @@
+ 	__DEFINE_LINK_MODE_PARAMS(10, T1BRR, Full),
+ };
+ static_assert(ARRAY_SIZE(link_mode_params) == __ETHTOOL_LINK_MODE_MASK_NBITS);
++EXPORT_SYMBOL_GPL(link_mode_params);
+ 
+ const char netif_msg_class_names[][ETH_GSTRING_LEN] = {
+ 	[NETIF_MSG_DRV_BIT]		= "drv",
+--- a/drivers/net/dsa/Kconfig
++++ b/drivers/net/dsa/Kconfig
+@@ -37,6 +37,7 @@
+ config NET_DSA_MT7530
+ 	tristate "MediaTek MT7530 and MT7531 Ethernet switch support"
+ 	select NET_DSA_TAG_MTK
++	select REGMAP_IRQ
+ 	imply NET_DSA_MT7530_MDIO
+ 	imply NET_DSA_MT7530_MMIO
+ 	help
