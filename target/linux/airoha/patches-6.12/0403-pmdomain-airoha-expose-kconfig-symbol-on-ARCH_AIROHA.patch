@@ -40,14 +40,17 @@ index 0e34a51..0d0ac4f 100644
  menu "MediaTek PM Domains"
  	depends on ARCH_MEDIATEK || COMPILE_TEST
  
-@@ -26,16 +39,4 @@ config MTK_SCPSYS_PM_DOMAINS
- 	  Control Processor System (SCPSYS) has several power management related
- 	  tasks in the system.
- 
+diff --git a/drivers/soc/mediatek/Kconfig b/drivers/soc/mediatek/Kconfig
+--- a/drivers/soc/mediatek/Kconfig
++++ b/drivers/soc/mediatek/Kconfig
+@@ -1,17 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ # MediaTek SoC drivers
+ #
 -config AIROHA_CPU_PM_DOMAIN
 -	tristate "Airoha CPU power domain"
 -	default ARCH_AIROHA
--	depends on HAVE_ARM_SMCCC
 -	depends on PM
 -	select PM_GENERIC_DOMAINS
 -	help
@@ -56,6 +59,7 @@ index 0e34a51..0d0ac4f 100644
 -	  CPU frequency and power is controlled by ATF with SMC command to
 -	  set performance states.
 -
- endmenu
+ menu "MediaTek SoC drivers"
+ 	depends on ARCH_MEDIATEK || COMPILE_TEST
 -- 
 2.43.0

@@ -1,0 +1,64 @@
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -4918,6 +4918,18 @@
+ }
+ 
+ #ifdef CONFIG_SKB_EXTENSIONS
++#if IS_ENABLED(CONFIG_NET_AIROHA_SOE)
++/* Immutable delayed PPE binding identity; contains no owned pointers. */
++struct skb_ext_airoha_soe {
++	u64 cookie;
++	u64 observation;
++	u16 foe_hash;
++};
++
++/* Non-reused identities survive driver unbind and module reload. */
++u64 skb_ext_airoha_soe_cookie_alloc(void);
++#endif
++
+ enum skb_ext_id {
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	SKB_EXT_BRIDGE_NF,
+@@ -4937,6 +4949,9 @@
+ #if IS_ENABLED(CONFIG_INET_PSP)
+ 	SKB_EXT_PSP,
+ #endif
++#if IS_ENABLED(CONFIG_NET_AIROHA_SOE)
++	SKB_EXT_AIROHA_SOE,
++#endif
+ 	SKB_EXT_NUM, /* must be last */
+ };
+ 
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -5105,7 +5105,30 @@
+ #define SKB_EXT_ALIGN_VALUE	8
+ #define SKB_EXT_CHUNKSIZEOF(x)	(ALIGN((sizeof(x)), SKB_EXT_ALIGN_VALUE) / SKB_EXT_ALIGN_VALUE)
+ 
++#if IS_ENABLED(CONFIG_NET_AIROHA_SOE)
++/* Kept in the networking core so driver reload cannot reuse an identity. */
++static DEFINE_SPINLOCK(skb_ext_airoha_soe_cookie_lock);
++static u64 skb_ext_airoha_soe_cookie;
++
++u64 skb_ext_airoha_soe_cookie_alloc(void)
++{
++	unsigned long flags;
++	u64 cookie = 0;
++
++	spin_lock_irqsave(&skb_ext_airoha_soe_cookie_lock, flags);
++	if (skb_ext_airoha_soe_cookie != U64_MAX)
++		cookie = ++skb_ext_airoha_soe_cookie;
++	spin_unlock_irqrestore(&skb_ext_airoha_soe_cookie_lock, flags);
++
++	return cookie;
++}
++EXPORT_SYMBOL_GPL(skb_ext_airoha_soe_cookie_alloc);
++#endif
++
+ static const u8 skb_ext_type_len[] = {
++#if IS_ENABLED(CONFIG_NET_AIROHA_SOE)
++	[SKB_EXT_AIROHA_SOE] = SKB_EXT_CHUNKSIZEOF(struct skb_ext_airoha_soe),
++#endif
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	[SKB_EXT_BRIDGE_NF] = SKB_EXT_CHUNKSIZEOF(struct nf_bridge_info),
+ #endif
