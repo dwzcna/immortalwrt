@@ -46,7 +46,7 @@ Signed-off-by: Scott Mercer <TheRootEd24@gmail.com>
  # Enable all the config-independent tools
  ifneq ($(HOST_TOOLS_ALL),)
  CONFIG_ARCH_KIRKWOOD = y
-@@ -281,15 +301,9 @@ hostprogs-always-$(CONFIG_MIPS) += mips-relocs
+@@ -281,14 +301,9 @@ hostprogs-always-$(CONFIG_MIPS) += mips-relocs
  hostprogs-always-$(CONFIG_ASN1_COMPILER)	+= asn1_compiler
  HOSTCFLAGS_asn1_compiler.o = -idirafter $(srctree)/include
  
@@ -65,7 +65,7 @@ Signed-off-by: Scott Mercer <TheRootEd24@gmail.com>
 +hostprogs-always-$(CONFIG_TOOLS_MKEFICAPSULE) +=
  
  include tools/fwumdata_src/fwumdata.mk
-@@ -345,12 +364,10 @@ HOST_EXTRACFLAGS += -include $(srctree)/
+@@ -345,12 +364,11 @@ HOST_EXTRACFLAGS += -include $(srctree)/
  		-I$(srctree)/scripts/dtc/libfdt \
  		-I$(srctree)/tools \
  		-DUSE_HOSTCC \
