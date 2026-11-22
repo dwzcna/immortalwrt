@@ -1,0 +1,25 @@
+--- a/drivers/pci/controller/pcie-mediatek-gen3.c
++++ b/drivers/pci/controller/pcie-mediatek-gen3.c
+@@ -644,11 +644,22 @@
+ 	raw_spin_unlock_irqrestore(&pcie->irq_lock, flags);
+ }
+ 
++static void mtk_msi_bottom_write_msi_msg(struct irq_data *data,
++					 struct msi_msg *msg)
++{
++	struct msi_desc *desc = irq_data_get_msi_desc(data);
++
++	if (desc->irq == data->irq)
++		__pci_write_msi_msg(desc, msg);
++}
++
+ static struct irq_chip mtk_msi_bottom_irq_chip = {
+ 	.irq_ack		= mtk_msi_bottom_irq_ack,
+ 	.irq_mask		= mtk_msi_bottom_irq_mask,
+ 	.irq_unmask		= mtk_msi_bottom_irq_unmask,
+ 	.irq_compose_msi_msg	= mtk_compose_msi_msg,
++	.irq_write_msi_msg	= mtk_msi_bottom_write_msi_msg,
++	.irq_set_affinity	= irq_chip_set_affinity_parent,
+ 	.name			= "MSI",
+ };
+ 
