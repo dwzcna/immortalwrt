@@ -4,14 +4,15 @@
 
 --- a/drivers/clk/clk-en7523.c
 +++ b/drivers/clk/clk-en7523.c
-@@ -42,6 +42,7 @@
- #define REG_NP_SCU_SSTR			0x9c
- #define REG_PCIE_XSI0_SEL_MASK		GENMASK(14, 13)
- #define REG_PCIE_XSI1_SEL_MASK		GENMASK(12, 11)
-+#define REG_USB_PCIE_SEL		BIT(3)
+@@ -59,7 +59,8 @@
+ #define REG_USB_PCIE_SEL_MASK		BIT(3)
+ #define REG_USB_PCIE_SEL_PCIE		FIELD_PREP_CONST(REG_USB_PCIE_SEL_MASK, 0x0)
+ #define REG_USB_PCIE_SEL_USB		FIELD_PREP_CONST(REG_USB_PCIE_SEL_MASK, 0x1)
++#define REG_USB_PCIE_SEL		REG_USB_PCIE_SEL_MASK
  #define REG_CRYPTO_CLKSRC2		0x20c
  
  #define REG_RST_CTRL2			0x830
+ #define REG_RST_CTRL1			0x834
 @@ -1128,7 +1129,8 @@ static int en7581_clk_hw_init(struct pla
  		return err;
  
