@@ -1,0 +1,296 @@
+Subject: [PATCH] wifi: mt76: adapt to backports-6.18.39 (guard SCS/flow/airtime/dscp, ppe_check, action_code, tx flags, aql, nan)
+
+--- a/mt7996/main.c
++++ b/mt7996/main.c
+@@ -2686,6 +2686,7 @@
+ 	return 0;
+ }
+ 
++#if 0 /* ieee80211_ops.sta_set_airtime_weight not in backports-6.18.39 */
+ static void mt7996_sta_set_airtime_weight(struct ieee80211_hw *hw,
+ 					  struct ieee80211_vif *vif,
+ 					  struct ieee80211_sta *sta, u16 weight)
+@@ -2718,6 +2719,8 @@
+ 	mutex_unlock(&dev->mt76.mutex);
+ }
+ 
++#endif
++
+ static void mt7996_sta_set_4addr(struct ieee80211_hw *hw,
+ 				 struct ieee80211_vif *vif,
+ 				 struct ieee80211_sta *sta,
+@@ -2754,6 +2757,7 @@
+ 	mutex_unlock(&dev->mt76.mutex);
+ }
+ 
++#if 0 /* SCS API requires backports-7.2 / kernel >= 6.18 */
+ /* SCS descriptors belong to the MLD, firmware streams to a link */
+ static int mt7996_sta_scs_program(struct mt7996_dev *dev,
+ 				  struct ieee80211_vif *vif,
+@@ -2817,6 +2821,8 @@
+ 	return 0;
+ }
+ 
++#endif
++
+ static void mt7996_sta_set_decap_offload(struct ieee80211_hw *hw,
+ 					 struct ieee80211_vif *vif,
+ 					 struct ieee80211_sta *sta,
+@@ -3170,6 +3176,7 @@
+ 	return &dev->mt76.mmio.wed;
+ }
+ 
++#if 0 /* cfg80211 flow key/info API requires backports-7.2 / kernel >= 6.18 */
+ /* The forward path fills the entries with the index of the default link */
+ static struct mtk_wed_device *
+ mt7996_sta_flow_wed(struct mt7996_dev *dev, struct ieee80211_sta *sta,
+@@ -3287,6 +3294,8 @@
+ 	return idle;
+ }
+ 
++#endif
++
+ static int
+ mt7996_net_fill_forward_path(struct ieee80211_hw *hw,
+ 			     struct ieee80211_vif *vif,
+@@ -3511,9 +3520,13 @@
+ 	.set_coverage_class = mt7996_set_coverage_class,
+ 	.sta_statistics = mt7996_sta_statistics,
+ 	.sta_set_4addr = mt7996_sta_set_4addr,
++#if 0
+ 	.sta_set_scs = mt7996_sta_set_scs,
++#endif
+ 	.sta_set_decap_offload = mt7996_sta_set_decap_offload,
++#if 0
+ 	.sta_set_airtime_weight = mt7996_sta_set_airtime_weight,
++#endif
+ 	.add_twt_setup = mt7996_mac_add_twt_setup,
+ 	.twt_teardown_request = mt7996_twt_teardown_request,
+ #ifdef CONFIG_MAC80211_DEBUGFS
+@@ -3522,8 +3535,10 @@
+ #endif
+ 	.set_radar_background = mt7996_set_radar_background,
+ 	.net_fill_forward_path = mt7996_net_fill_forward_path,
++#if 0
+ 	.flow_offload_flush = mt7996_flow_offload_flush,
+ 	.flow_offload_idle = mt7996_flow_offload_idle,
++#endif
+ #if defined(CONFIG_NET_MEDIATEK_SOC_WED) || defined(CONFIG_MT7996_NPU)
+ 	.net_setup_tc = mt7996_net_setup_tc,
+ #endif
+--- a/mt7996/mac.c
++++ b/mt7996/mac.c
+@@ -303,8 +303,7 @@
+ 
+ 	mtk_wed_device_ppe_check(&dev->mt76.mmio.wed, skb,
+ 				 FIELD_GET(MT_DMA_PPE_CPU_REASON, info),
+-				 FIELD_GET(MT_DMA_PPE_ENTRY, info),
+-				 msta_link->wcid.idx);
++				 FIELD_GET(MT_DMA_PPE_ENTRY, info));
+ }
+ 
+ /* Make the declared RXD groups and the consumed MAC prefix linear before
+@@ -752,9 +751,9 @@
+ 	u32 val;
+ 
+ 	if (ieee80211_is_action(fc) &&
+-	    skb->len >= IEEE80211_MIN_ACTION_SIZE(action_code) &&
++	    skb->len >= IEEE80211_MIN_ACTION_SIZE + 1 &&
+ 	    mgmt->u.action.category == WLAN_CATEGORY_BACK &&
+-	    mgmt->u.action.action_code == WLAN_ACTION_ADDBA_REQ) {
++	    mgmt->u.action.u.addba_req.action_code == WLAN_ACTION_ADDBA_REQ) {
+ 		if (is_mt7990(&dev->mt76))
+ 			txwi[6] |= cpu_to_le32(FIELD_PREP(MT_TXD6_TID_ADDBA, tid));
+ 		else
+@@ -1115,8 +1114,7 @@
+ 
+ 	/* mt76_tx_status_skb_add() clears info->control.flags */
+ 	host_txd = !is_8023 ||
+-		   (info->control.flags & (IEEE80211_TX_CTRL_STREAM_CLASSIFIED |
+-					   IEEE80211_TX_CTRL_EXPLICIT_UP));
++		   (info->control.flags & 0); /* STREAM_CLASSIFIED/EXPLICIT_UP need 6.18 */
+ 
+ 	pid = mt76_tx_status_skb_add(mdev, wcid, tx_info->skb);
+ 	memset(txwi_ptr, 0, MT_TXD_SIZE);
+--- a/mt7996/mcu.c
++++ b/mt7996/mcu.c
+@@ -536,6 +536,42 @@
+ 	}
+ }
+ 
++static unsigned int mt7996_dscp_to_up(unsigned int dscp)
++{
++	unsigned int ret = dscp >> 3;
++
++	switch (dscp) {
++	case 10:
++	case 12:
++	case 14:
++		ret = 0;
++		break;
++	case 16:
++		ret = 0;
++		break;
++	case 18:
++	case 20:
++	case 22:
++		ret = 3;
++		break;
++	case 24:
++	case 26:
++	case 28:
++	case 30:
++		ret = 4;
++		break;
++	case 44:
++	case 46:
++		ret = 6;
++		break;
++	case 48:
++		ret = 7;
++		break;
++	}
++
++	return ret;
++}
++
+ static int
+ mt7996_mcu_send_message(struct mt76_dev *mdev, struct sk_buff *skb,
+ 			int cmd, int *wait_seq)
+@@ -685,7 +721,7 @@
+ 
+ 	/* SDO takes the TID of an 802.3 frame from this table */
+ 	for (i = 0; i < ARRAY_SIZE(req.data.up); i++)
+-		req.data.up[i] = cfg80211_dscp_to_up(i, NULL);
++		req.data.up[i] = mt7996_dscp_to_up(i);
+ 
+ 	if (mt7996_has_wa(dev))
+ 		return mt76_mcu_send_msg(&dev->mt76, MCU_WA_EXT_CMD(SET_QOS_MAP),
+@@ -3222,6 +3258,7 @@
+ 				 sizeof(req), true);
+ }
+ 
++#if 0 /* SCS API requires backports-7.2 / kernel >= 6.18 */
+ int mt7996_mcu_set_scs(struct mt7996_dev *dev, u16 wlan_idx,
+ 		       const struct cfg80211_scs_desc *desc, bool del)
+ {
+@@ -3261,6 +3298,8 @@
+ 				 sizeof(req), true);
+ }
+ 
++#endif
++
+ static int
+ mt7996_mcu_sta_init_vow(struct mt7996_dev *dev, struct mt76_vif_link *mvif,
+ 			struct mt76_wcid *wcid, u16 weight)
+@@ -4033,13 +4072,11 @@
+ 	if (changed & BSS_CHANGED_FILS_DISCOVERY &&
+ 	    link_conf->fils_discovery.max_interval) {
+ 		interval = link_conf->fils_discovery.max_interval;
+-		skb = ieee80211_get_fils_discovery_tmpl(hw, vif,
+-							link_conf->link_id);
++		skb = ieee80211_get_fils_discovery_tmpl(hw, vif);
+ 	} else if (changed & BSS_CHANGED_UNSOL_BCAST_PROBE_RESP &&
+ 		   link_conf->unsol_bcast_probe_resp_interval) {
+ 		interval = link_conf->unsol_bcast_probe_resp_interval;
+-		skb = ieee80211_get_unsol_bcast_probe_resp_tmpl(hw, vif,
+-								link_conf->link_id);
++		skb = ieee80211_get_unsol_bcast_probe_resp_tmpl(hw, vif);
+ 	}
+ 
+ 	if (!skb) {
+--- a/mt7996/mt7996.h
++++ b/mt7996/mt7996.h
+@@ -879,8 +879,10 @@
+ 				   void *data, u16 version);
+ int mt7996_mcu_set_fixed_field(struct mt7996_dev *dev, struct mt7996_sta *msta,
+ 			       void *data, u8 link_id, u32 field);
++#if 0 /* SCS API requires backports-7.2 / kernel >= 6.18 */
+ int mt7996_mcu_set_scs(struct mt7996_dev *dev, u16 wlan_idx,
+ 		       const struct cfg80211_scs_desc *desc, bool del);
++#endif
+ int mt7996_mcu_set_eeprom(struct mt7996_dev *dev);
+ int mt7996_mcu_get_eeprom(struct mt7996_dev *dev, u32 offset, u8 *buf, u32 buf_len,
+ 			  enum mt7996_eeprom_mode mode);
+--- a/mt7996/init.c
++++ b/mt7996/init.c
+@@ -590,8 +590,10 @@
+ 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_MU_MIMO_AIR_SNIFFER);
+ 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_SET_SCAN_DWELL);
+ 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_PUNCT);
++#if 0 /* SCS API requires backports-7.2 / kernel >= 6.18 */
+ 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_SCS);
+ 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_MSCS);
++#endif
+ 
+ 	if (mt7996_eeprom_has_background_radar(dev) &&
+ 	    (!mdev->dev->of_node ||
+--- a/tx.c
++++ b/tx.c
+@@ -5,6 +5,15 @@
+ 
+ #include "mt76.h"
+ 
++static u32 mt76_txq_aql_pending(struct ieee80211_hw *hw,
++				struct ieee80211_txq *txq)
++{
++	unsigned long frame_cnt, byte_cnt;
++
++	ieee80211_txq_get_depth(txq, &frame_cnt, &byte_cnt);
++	return frame_cnt ? 1 : 0;
++}
++
+ static int
+ mt76_txq_get_qid(struct ieee80211_txq *txq)
+ {
+@@ -531,7 +540,7 @@
+ 	if (test_bit(MT_WCID_FLAG_PS, &wcid->flags)) {
+ 		if (!(dev->drv->drv_flags & MT_DRV_HW_PS_BUFFERING))
+ 			return 0;
+-		if (ieee80211_txq_aql_pending(phy->hw, txq))
++		if (mt76_txq_aql_pending(phy->hw, txq))
+ 			return 0;
+ 	}
+ 
+--- a/mt76_connac_mcu.c
++++ b/mt76_connac_mcu.c
+@@ -466,7 +466,6 @@
+ 		basic->aid = cpu_to_le16(link_sta->sta->aid);
+ 		break;
+ 	case NL80211_IFTYPE_NAN:
+-	case NL80211_IFTYPE_NAN_DATA:
+ 		basic->conn_type = cpu_to_le32(CONNECTION_NAN);
+ 		break;
+ 	default:
+@@ -1265,7 +1264,6 @@
+ 		basic_req.basic.conn_type = cpu_to_le32(CONNECTION_IBSS_ADHOC);
+ 		break;
+ 	case NL80211_IFTYPE_NAN:
+-	case NL80211_IFTYPE_NAN_DATA:
+ 		basic_req.basic.conn_type = cpu_to_le32(CONNECTION_NAN);
+ 		basic_req.basic.conn_state = !enable;
+ 		break;
+@@ -1680,7 +1678,6 @@
+ 		basic_req.basic.conn_type = cpu_to_le32(CONNECTION_IBSS_ADHOC);
+ 		break;
+ 	case NL80211_IFTYPE_NAN:
+-	case NL80211_IFTYPE_NAN_DATA:
+ 		basic_req.basic.conn_type = cpu_to_le32(CONNECTION_NAN);
+ 		basic_req.basic.active = enable;
+ 		break;
+--- a/mt76_connac_mac.c
++++ b/mt76_connac_mac.c
+@@ -422,10 +422,10 @@
+ 	u32 val;
+ 
+ 	if (ieee80211_is_action(fc) &&
+-	    skb->len >= IEEE80211_MIN_ACTION_SIZE(addba_req.capab) &&
++	    skb->len >= offsetof(struct ieee80211_mgmt, u.action.u.addba_req.capab) &&
+ 	    mgmt->u.action.category == WLAN_CATEGORY_BACK &&
+-	    mgmt->u.action.action_code == WLAN_ACTION_ADDBA_REQ) {
+-		u16 capab = le16_to_cpu(mgmt->u.action.addba_req.capab);
++	    mgmt->u.action.u.addba_req.action_code == WLAN_ACTION_ADDBA_REQ) {
++		u16 capab = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
+ 
+ 		txwi[5] |= cpu_to_le32(MT_TXD5_ADD_BA);
+ 		tid = (capab >> 2) & IEEE80211_QOS_CTL_TID_MASK;
