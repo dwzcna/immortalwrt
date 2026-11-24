@@ -1,0 +1,81 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Devin <devin@cognition.ai>
+Date: Tue, 24 Nov 2026 00:00:00 +0000
+Subject: [PATCH] net: airoha: export frame-engine counter registers via
+ debugfs
+
+Add /sys/kernel/debug/airoha_eth/fe_counters listing every FE counter
+register consumed by the LuCI XR1710G overview page (PSE shared-buffer
+occupancy and per-port queues, GDM TX/RX MIBs, CDM engine counters).
+Reading them through debugfs removes the need for busybox devmem and an
+unrestricted /dev/mem in the firmware image.
+
+Upstream status: not applicable, vendor/Airoha tree.
+---
+ drivers/net/ethernet/airoha/airoha_eth.c | 47 +++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+
+diff --git a/drivers/net/ethernet/airoha/airoha_eth.c b/drivers/net/ethernet/airoha/airoha_eth.c
+index 1234567..89abcde 100644
+--- a/drivers/net/ethernet/airoha/airoha_eth.c
++++ b/drivers/net/ethernet/airoha/airoha_eth.c
+@@ -5836,5 +5836,50 @@
+ };
+ 
++/* FE counter registers consumed by the LuCI frame-engine view. Offsets are
++ * within the FE register space (fe_regs); keep in sync with
++ * luci-app-naoki66-overview (usr/libexec/rpcd/luci.naoki66_overview).
++ */
++static const u16 fe_ctr_pse[] = { 0x100, 0x104 };
++static const u16 fe_ctr_gdm[] = {
++	0x04, 0x08, 0x48, 0x4c, 0x50, 0x54, 0x58,
++};
++static const u16 fe_ctr_cdm[] = {
++	0x00, 0x0c, 0x10, 0x14, 0x18, 0x1c, 0x20, 0x24, 0x28,
++	0x2c, 0x30, 0x34, 0x38, 0x3c, 0x50, 0x54, 0x58, 0x5c,
++};
++static const u16 fe_ctr_gdm_base[] = { 0x0600, 0x1600, 0x2600 };
++static const u16 fe_ctr_cdm_base[] = { 0x0580, 0x1580 };
++
++static int airoha_fe_counters_debugfs_show(struct seq_file *s, void *data)
++{
++	struct airoha_eth *eth = s->private;
++	u32 off;
++	int i, j;
++
++	for (i = 0; i < ARRAY_SIZE(fe_ctr_pse); i++)
++		seq_printf(s, "0x%04x 0x%08x\n", fe_ctr_pse[i],
++			   airoha_fe_rr(eth, fe_ctr_pse[i]));
++
++	/* Per-port PSE queue occupancy (0x150) and drop counts (0x178). */
++	for (off = 0x150; off <= 0x19c; off += 4)
++		seq_printf(s, "0x%04x 0x%08x\n", off, airoha_fe_rr(eth, off));
++
++	for (i = 0; i < ARRAY_SIZE(fe_ctr_gdm_base); i++)
++		for (j = 0; j < ARRAY_SIZE(fe_ctr_gdm); j++)
++			seq_printf(s, "0x%04x 0x%08x\n",
++				   fe_ctr_gdm_base[i] + fe_ctr_gdm[j],
++				   airoha_fe_rr(eth, fe_ctr_gdm_base[i] + fe_ctr_gdm[j]));
++
++	for (i = 0; i < ARRAY_SIZE(fe_ctr_cdm_base); i++)
++		for (j = 0; j < ARRAY_SIZE(fe_ctr_cdm); j++)
++			seq_printf(s, "0x%04x 0x%08x\n",
++				   fe_ctr_cdm_base[i] + fe_ctr_cdm[j],
++				   airoha_fe_rr(eth, fe_ctr_cdm_base[i] + fe_ctr_cdm[j]));
++
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(airoha_fe_counters_debugfs);
++
+ static int airoha_probe(struct platform_device *pdev)
+ {
+ 	struct reset_control_bulk_data *xsi_rsts;
+@@ -5961,6 +6011,8 @@ static int airoha_probe(struct platform_device *pdev)
+ 	airoha_eth_dbgfs_dir = debugfs_create_dir("airoha_eth", NULL);
+ 	debugfs_create_file("qdma", 0444, airoha_eth_dbgfs_dir, eth,
+ 			    &airoha_qdma_debugfs_fops);
++	debugfs_create_file("fe_counters", 0444, airoha_eth_dbgfs_dir, eth,
++			    &airoha_fe_counters_debugfs_fops);
+ 
+ #ifdef CONFIG_AIROHA_PON_COMPAT
+ 	if (pon_compat)
