@@ -6,7 +6,9 @@
 
 / {
 	model = "Gemtek XR1710G (UBI)";
-	compatible = "gemtek,xr1710g-ubi", "airoha,an7581", "airoha,en7581";
+	compatible = "gemtek,xr1710g-ubi", "econet,xr1710g-ubi",
+		     "gemtek,xr1710g", "econet,xr1710g",
+		     "airoha,an7581", "airoha,en7581";
 
 	aliases {
 		label-mac-device = &gdm2;

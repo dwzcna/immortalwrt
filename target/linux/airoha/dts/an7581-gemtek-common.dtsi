@@ -268,6 +268,7 @@
 
 &eth {
 	status = "okay";
+	airoha,dsa-dram-forwarding;
 };
 
 &gdm1 {
@@ -298,6 +299,7 @@
 
 &gdm4 {
 	status = "okay";
+	airoha,lan-port;
 
 	managed = "in-band-status";
 	phy-handle = <&phy5>;

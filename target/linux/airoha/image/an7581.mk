@@ -114,7 +114,7 @@ define Device/gemtek_xr1710g-ubi
   DEVICE_ALT0_MODEL := XR1710G
   DEVICE_ALT0_VARIANT := (UBI)
   DEVICE_DTS := an7581-gemtek_xr1710g-ubi
-  SUPPORTED_DEVICES += econet,xr1710g-ubi
+  SUPPORTED_DEVICES += econet,xr1710g-ubi econet,xr1710g gemtek,xr1710g
   DEVICE_COMPAT_VERSION := 2.0
   DEVICE_COMPAT_MESSAGE := The XR1710G BMT/BBT boundary has changed. Install \
        an XR1710G chainloader/U-Boot using the new layout first, then boot \
