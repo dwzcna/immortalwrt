@@ -1,0 +1,98 @@
+From: naoki66 <naoki66@qq.com>
+Subject: [PATCH] net: airoha: account for PPPoE session header in PPE MTU
+
+A PPPoE session adds PPPOE_SES_HLEN (8 bytes) between the Ethernet
+header and the IP payload. The PPE FP_EGRESS_MTU register and the
+WAN_MTU0 register are compared against the on-wire L2 frame length,
+so a PPPoE uplink that does not budget those 8 bytes silently drops
+full-size frames: a 1492-byte PPPoE payload produces a 1500+8+VLAN
+byte L2 frame that exceeds the programmed limit.
+
+Add the PPPoE session header on the uplink GDM devices only. In
+airoha_ppe_set_xmit_frame_size() the MTU is aggregated across every
+device sharing the QDMA/port, so the check happens per-device inside
+the aggregation loop: an uplink GDM contributes
+mtu + VLAN_ETH_HLEN + PPPOE_SES_HLEN, while a LAN port keeps the
+VLAN-only accounting and is not given eight bytes of needless
+headroom.
+
+Ported from naoki66's XR1710G tree (920-17). Adapted: the original
+gates the extra headroom on AIROHA_DEV_F_PON, a flag introduced by
+the AN7581 PON series not present in this tree. This tree instead
+reserves the PPPoE headroom on every uplink (non-LAN) GDM, which
+covers PPPoE on the regular WAN port as well as on a PON uplink; the
+registers are max-length checks, so the extra 8 bytes on a
+non-PPPoE uplink is harmless.
+
+Source: https://github.com/naoki66/ImmortalWrt-for-Gemtek-brightspeed
+Signed-off-by: naoki66 <naoki66@qq.com>
+---
+ drivers/net/ethernet/airoha/airoha_eth.c | 10 +++++++---
+ drivers/net/ethernet/airoha/airoha_ppe.c | 17 +++++++++++++----
+ 2 files changed, 20 insertions(+), 7 deletions(-)
+
+--- a/drivers/net/ethernet/airoha/airoha_eth.c
++++ b/drivers/net/ethernet/airoha/airoha_eth.c
+@@ -18,6 +18,7 @@
+ #include <net/pkt_cls.h>
+ #include <net/tcp.h>
+ #include <uapi/linux/ppp_defs.h>
++#include <linux/if_pppox.h>
+
+ #include "airoha_regs.h"
+ #include "airoha_eth.h"
+@@ -2626,11 +2627,18 @@ static void airoha_dev_set_xmit_frame_si
+ {
+ 	struct airoha_gdm_dev *dev = netdev_priv(netdev);
+
+ 	airoha_ppe_set_xmit_frame_size(dev);
++	/* A PPPoE session can only egress through an uplink GDM; its 8-byte
++	 * session header (PPPOE_SES_HLEN) sits between the Ethernet header and
++	 * the IP payload, so it counts into the L2 frame length the WAN MTU
++	 * register is compared against, on top of the operator VLAN tag that
++	 * VLAN_ETH_HLEN already covers. LAN ports stay VLAN-only.
++	 */
+ 	if (!airoha_is_lan_gdm_dev(dev))
+ 		airoha_fe_rmw(dev->eth, REG_WAN_MTU0, WAN_MTU0_MASK,
+ 			      FIELD_PREP(WAN_MTU0_MASK,
+-					 VLAN_ETH_HLEN + netdev->mtu));
++					 VLAN_ETH_HLEN + PPPOE_SES_HLEN +
++					 netdev->mtu));
+ }
+
+ static int airoha_dev_open(struct net_device *netdev)
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -171,6 +172,7 @@ void airoha_ppe_set_xmit_frame_size(stru
+ 		struct airoha_gdm_dev *d = port->devs[i];
+ 		struct net_device *netdev;
+ 		struct airoha_qdma *q;
++		u32 mtu;
+
+ 		if (!d)
+ 			continue;
+@@ -180,10 +182,21 @@ void airoha_ppe_set_xmit_frame_size(stru
+ 			continue;
+
+ 		netdev = netdev_from_priv(d);
+-		if (netif_running(netdev))
+-			len = max_t(u32, len, netdev->mtu);
++		if (!netif_running(netdev))
++			continue;
++
++		/* The register is compared against the on-wire L2 length, so
++		 * every encapsulation on this egress path has to be added to
++		 * the aggregated MTU. VLAN_ETH_HLEN applies to all ports; an
++		 * uplink GDM can additionally carry a PPPoE session whose
++		 * PPPOE_SES_HLEN sits between Ethernet and the IP payload.
++		 */
++		mtu = netdev->mtu + VLAN_ETH_HLEN;
++		if (!airoha_is_lan_gdm_dev(d))
++			mtu += 8; /* PPPOE_SES_HLEN, no if_pppox.h include */
++
++		len = max_t(u32, len, mtu);
+ 	}
+-	len += VLAN_ETH_HLEN;
+
+ 	ppe_id = !airoha_is_lan_gdm_dev(dev) && airoha_ppe_is_enabled(eth, 1);
+ 	index = port->id == AIROHA_GDM4_IDX ? 7 : port->id;
