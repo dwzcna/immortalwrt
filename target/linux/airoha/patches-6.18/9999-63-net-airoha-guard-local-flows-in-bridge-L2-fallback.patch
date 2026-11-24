@@ -1,0 +1,167 @@
+From: Jihong Min <hurryman2212@gmail.com>
+Date: Mon, 25 May 2026 07:09:47 +0900
+Subject: [PATCH] net: airoha: guard local flows in bridge L2 fallback
+
+The Linux bridge FDB can resolve a destination port even when the Airoha
+PPE driver's L2 offload cache has no entry for that MAC pair.
+The normal bind path only checks the PPE driver's L2 offload cache, so an
+unbound PPE hit can stay unbound even though the bridge already knows the
+right output path, unless a later offload event fills that PPE driver cache.
+
+This matters in both directions: wired-to-WLAN traffic needs the WDMA path,
+while WLAN-to-wired traffic needs the destination GDM path. Same-link or
+same-radio intra-BSS forwarding can stay inside the WLAN datapath and is
+not covered.
+
+Before touching the PPE table, resolve the destination MAC through the
+bridge device above the ingress netdev. If the PPE driver's L2 offload
+cache lookup misses, bind the hardware flow to the resolved WDMA or GDM
+egress path.
+
+Packets addressed to the ingress netdev or its bridge master must stay on
+the CPU. eth_type_trans() marks the former PACKET_HOST, but WiFi NPU/WED RX
+can call the PPE hook before it has run, so classify local packets from the
+destination MAC when the ingress device and MAC header are available.
+When the bridge master and port use different MAC addresses, checking only
+the ingress netdev misses traffic for the bridge host and can bind it away
+from the CPU. Resolve the master through a VLAN upper when present and treat
+both device addresses as local. These packets must not use the bridge L2
+cache or fallback path.
+
+Keep looking for a real L4 flowtable entry first so routed and NAT traffic
+whose next-hop MAC is local can still be offloaded. If no such entry
+matches, leave PACKET_HOST entries unbound instead of preparing or
+committing a bridge subflow.
+
+On an XR1710G this failure capped a reverse UDP test at 30--34 packets with
+the default ppe_bind_rate of 30, while GDM4 counted the complete 5,318
+packets and reported no drops or errors. Raising ppe_bind_rate to 65,535
+prevented binding and delivered 5,206 of 5,207 packets, confirming the bad
+PPE bind.
+
+This also covers XR1710G deployments where WAN is a br-lan slave but has a
+different MAC from br-lan; otherwise TCP destined for the router can be
+installed as a bound PPE 5-tuple.
+
+Assisted-by: Codex:gpt-5.5
+Signed-off-by: Jihong Min <hurryman2212@gmail.com>
+Assisted-by: Codex:gpt-5.6-sol
+Signed-off-by: Yanghan Ye <yyh94306@gmail.com>
+Signed-off-by: naoki66 <naoki66@qq.com>
+---
+Index: linux-6.18.60/drivers/net/ethernet/airoha/airoha_ppe.c
+===================================================================
+--- linux-6.18.60.orig/drivers/net/ethernet/airoha/airoha_ppe.c	2026-11-24 03:06:12.962636522 +0000
++++ linux-6.18.60/drivers/net/ethernet/airoha/airoha_ppe.c	2026-11-24 03:08:34.164838118 +0000
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/bitmap.h>
+ #include <linux/ip.h>
++#include <linux/etherdevice.h>
+ #include <linux/ipv6.h>
+ #include <linux/kstrtox.h>
+ #include <linux/moduleparam.h>
+@@ -1662,10 +1663,12 @@
+ 					  struct airoha_flow_data *data,
+ 					  struct airoha_foe_entry *hwe)
+ {
++	struct airoha_gdm_dev *egress_dev;
+ 	int err;
+ 
+ 	err = airoha_ppe_foe_entry_prepare(ppe->eth, hwe, dev,
+-					   PPE_PKT_TYPE_BRIDGE, data, 0, 0);
++					   PPE_PKT_TYPE_BRIDGE, data, 0, 0,
++					   &egress_dev);
+ 	if (err)
+ 		return false;
+ 
+@@ -1673,21 +1676,75 @@
+ }
+ 
+ static struct net_device *
+-airoha_ppe_foe_get_bridge_master(struct net_device *dev)
++airoha_ppe_foe_get_bridge_master_rcu(struct net_device *dev)
+ {
+-	struct net_device *master = NULL;
++	struct net_device *master;
++	struct net_device *real_dev;
++
++	if (netif_is_bridge_master(dev))
++		return dev;
+ 
+-	rcu_read_lock();
+ 	master = netdev_master_upper_dev_get_rcu(dev);
+ 	if (master && netif_is_bridge_master(master))
++		return master;
++
++	if (!is_vlan_dev(dev))
++		return NULL;
++
++	real_dev = vlan_dev_real_dev(dev);
++	if (!real_dev)
++		return NULL;
++
++	if (netif_is_bridge_master(real_dev))
++		return real_dev;
++
++	master = netdev_master_upper_dev_get_rcu(real_dev);
++	if (master && netif_is_bridge_master(master))
++		return master;
++
++	return NULL;
++}
++
++static struct net_device *
++airoha_ppe_foe_get_bridge_master(struct net_device *dev)
++{
++	struct net_device *master;
++
++	rcu_read_lock();
++	master = airoha_ppe_foe_get_bridge_master_rcu(dev);
++	if (master)
+ 		dev_hold(master);
+-	else
+-		master = NULL;
+ 	rcu_read_unlock();
+ 
+ 	return master;
+ }
+ 
++static bool airoha_ppe_foe_skb_is_local(const struct sk_buff *skb)
++{
++	struct net_device *master;
++	const struct ethhdr *eh;
++	bool local;
++
++	/* NPU/WED RX may call PPE before eth_type_trans() has run. Keep
++	 * unknown contexts local so a missing MAC header never enables the
++	 * bridge fallback on an incompletely initialized skb.
++	 */
++	if (!skb->dev || !skb_mac_header_was_set(skb))
++		return true;
++
++	eh = eth_hdr(skb);
++	if (ether_addr_equal_64bits(eh->h_dest, skb->dev->dev_addr))
++		return true;
++
++	rcu_read_lock();
++	master = airoha_ppe_foe_get_bridge_master_rcu(skb->dev);
++	local = master &&
++		ether_addr_equal_64bits(eh->h_dest, master->dev_addr);
++	rcu_read_unlock();
++
++	return local;
++}
++
+ static bool
+ airoha_ppe_foe_prepare_bridge_subflow(struct airoha_ppe *ppe,
+ 				      struct sk_buff *skb,
+@@ -2110,7 +2167,7 @@
+ 	struct airoha_foe_entry *hwe;
+ 	bool commit_done = false;
+ 	bool bridge_ready = false;
+-	bool local = skb->pkt_type == PACKET_HOST;
++	bool local = airoha_ppe_foe_skb_is_local(skb);
+ 	struct hlist_node *n;
+ 	u32 index, state;
+ 
