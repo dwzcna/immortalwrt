@@ -21,7 +21,7 @@ an7581_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "lan2 lan3 lan4" "wan"
 		ucidef_set_country "US"
 		local mac6
-		mac6="$(cat /sys/class/net/wan/address 2>/dev/null | tr -d ':' | tail -c 7)"
+		mac6="$(cat /sys/class/net/wan/address 2>/dev/null | tr -d ':' | tr 'a-f' 'A-F' | tail -c 7)"
 		ucidef_set_wireless "2g" "ImmortalWRT${mac6:+-}${mac6}"
 		ucidef_set_wireless "5g" "ImmortalWRT${mac6:+-}${mac6}-5G"
 		ucidef_set_wireless "6g" "ImmortalWRT${mac6:+-}${mac6}-6G"
