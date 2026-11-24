@@ -28,6 +28,8 @@ set_xr1710g_radio_defaults() {
 		uci set wireless."$cfg".country='US'
 		uci set wireless."$cfg".channel='37'
 		uci set wireless."$cfg".htmode='EHT320'
+		# 6GHz AP mode is not permitted for sale/use in China; keep it off by default.
+		uci set wireless."$cfg".disabled='1'
 		;;
 	*)
 		return 0
