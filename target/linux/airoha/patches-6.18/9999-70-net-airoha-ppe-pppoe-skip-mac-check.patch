@@ -1,0 +1,40 @@
+From: Devin <devin@cognition.ai>
+Subject: [PATCH] net: airoha: ppe: skip MAC check for PPPoE flows
+
+Adapted from orangeyoo/XR1710G-OpenWrt-iStoreOS-Community
+9999-32-net-airoha-ppe-pppoe-skip-mac-check.
+
+For PPPoE flows the nf_flow_table offload path (FLOW_OFFLOAD_XMIT_DIRECT)
+does not emit FLOW_ACTION_MANGLE/FLOW_ACT_MANGLE_HDR_TYPE_ETH, so
+data.eth.h_dest/h_source remain zero.  The PPE hardware resolves the
+outer L2 header from the physical egress port and the PPPoE session ID
+(already stored in data.pppoe.sid via FLOW_ACTION_PPPOE_PUSH), so the
+MAC check is incorrect for this path and must be skipped.
+
+Signed-off-by: Devin <devin@cognition.ai>
+---
+ drivers/net/ethernet/airoha/airoha_ppe.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -2803,8 +2803,17 @@ static int airoha_ppe_flow_offload_repl
+ 		}
+ 	}
+ 
+-	if (!is_valid_ether_addr(data.eth.h_source) ||
+-	    !is_valid_ether_addr(data.eth.h_dest)) {
++	/*
++	 * For PPPoE flows the nf_flow_table offload path
++	 * (FLOW_OFFLOAD_XMIT_DIRECT) does not emit
++	 * FLOW_ACTION_MANGLE/FLOW_ACT_MANGLE_HDR_TYPE_ETH, so
++	 * data.eth.h_dest/h_source remain zero.  The PPE hardware resolves
++	 * the outer L2 header from the egress port and the PPPoE session
++	 * ID, so the MAC check must be skipped for this path.
++	 */
++	if (!data.pppoe.num &&
++	    (!is_valid_ether_addr(data.eth.h_source) ||
++	     !is_valid_ether_addr(data.eth.h_dest))) {
+ 		airoha_ppe_drop_inc(eth->ppe, AIROHA_PPE_DROP_INVALID_MAC);
+ 		return -EINVAL;
+ 	}
