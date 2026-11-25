@@ -1,0 +1,492 @@
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/bandwidth.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/bandwidth_impl.js
+similarity index 99%
+rename from modules/luci-mod-status/htdocs/luci-static/resources/view/status/bandwidth.js
+rename to modules/luci-mod-status/htdocs/luci-static/resources/view/status/bandwidth_impl.js
+index 1588a7d8ad..e746aa9e20 100644
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/bandwidth.js
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/bandwidth_impl.js
+@@ -24,7 +24,10 @@ function rate(n, br) {
+ 	return [ '%1024.2mbit/s'.format(n * 8), br ? E('br') : ' ', '(%1024.2mB/s)'.format(n) ]
+ }
+ 
+-return view.extend({
++const xrLogic = view.extend({
++
++	__init__() {},
++
+ 	load() {
+ 		return Promise.all([
+ 			this.loadSVG(L.resource('svg/bandwidth.svg')),
+@@ -318,3 +321,5 @@ return view.extend({
+ 	handleSave: null,
+ 	handleReset: null
+ });
++
++return xrLogic;
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections_impl.js
+similarity index 99%
+rename from modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections.js
+rename to modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections_impl.js
+index 5ae31b6cd2..a47f5df574 100644
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections.js
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections_impl.js
+@@ -56,7 +56,10 @@ const recheck_lookup_queue = {};
+ 
+ Math.log2 = Math.log2 || function(x) { return Math.log(x) * Math.LOG2E; };
+ 
+-return view.extend({
++const xrLogic = view.extend({
++
++	__init__() {},
++
+ 	load() {
+ 		return Promise.all([
+ 			this.loadSVG(L.resource('svg/connections.svg'))
+@@ -554,3 +557,5 @@ return view.extend({
+ 	handleSave: null,
+ 	handleReset: null
+ });
++
++return xrLogic;
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/dmesg.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/dmesg_impl.js
+similarity index 99%
+rename from modules/luci-mod-status/htdocs/luci-static/resources/view/status/dmesg.js
+rename to modules/luci-mod-status/htdocs/luci-static/resources/view/status/dmesg_impl.js
+index 984c0432f4..9a224d0630 100644
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/dmesg.js
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/dmesg_impl.js
+@@ -4,7 +4,10 @@
+ 'require poll';
+ 'require ui';
+ 
+-return view.extend({
++const xrLogic = view.extend({
++
++	__init__() {},
++
+ 	logFilterFrom: '0',
+ 	logFilterTo: '',
+ 	invertLogRangeFilter: false,
+@@ -295,3 +298,5 @@ return view.extend({
+ 	handleSave: null,
+ 	handleReset: null
+ });
++
++return xrLogic;
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/load.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/load_impl.js
+similarity index 99%
+rename from modules/luci-mod-status/htdocs/luci-static/resources/view/status/load.js
+rename to modules/luci-mod-status/htdocs/luci-static/resources/view/status/load_impl.js
+index 82b3ab2411..d9d0bb24ca 100644
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/load.js
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/load_impl.js
+@@ -16,7 +16,10 @@ const pollInterval = 3;
+ 
+ Math.log2 = Math.log2 || function(x) { return Math.log(x) * Math.LOG2E; };
+ 
+-return view.extend({
++const xrLogic = view.extend({
++
++	__init__() {},
++
+ 	load() {
+ 		return Promise.all([
+ 			this.loadSVG(L.resource('svg/load.svg'))
+@@ -293,3 +296,5 @@ return view.extend({
+ 	handleSave: null,
+ 	handleReset: null
+ });
++
++return xrLogic;
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/logs.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/logs.js
+new file mode 100644
+index 0000000000..884413d332
+--- /dev/null
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/logs.js
+@@ -0,0 +1,45 @@
++'use strict';
++'require view';
++'require ui';
++'require dom';
++
++/*
++ * Tabbed container: merges the log status pages into one view with
++ * client-side tab switching.  Each pane lazy-loads the original view
++ * logic on first activation, so switching tabs no longer reloads the
++ * entire page.  Hidden panes neither render nor poll until visited.
++ */
++
++const TABS = [
++	['syslog', _('System Log'), 'view.status.syslog_impl'],
++	['dmesg', _('Kernel Log'), 'view.status.dmesg_impl'],
++];
++
++return view.extend({
++	render() {
++		const group = E('div', { 'class': 'cbi-section-node-tabbed' });
++		const wrapper = E('div', {}, group);
++
++		for (const [name, title, path] of TABS) {
++			const pane = E('div', {
++				'data-tab': name,
++				'data-tab-title': title
++			}, E('div', { 'class': 'spinning' }, _('Loading view…')));
++
++			pane.addEventListener('cbi-tab-active', function load() {
++				pane.removeEventListener('cbi-tab-active', load);
++				L.require(path).then(inst =>
++					Promise.resolve(inst.load ? inst.load() : null)
++						.then(data => inst.render(data)))
++				.then(nodes => dom.content(pane, nodes))
++				.catch(err => dom.content(pane,
++					E('div', { 'class': 'alert-message error' }, String(err))));
++			});
++
++			group.appendChild(pane);
++		}
++
++		ui.tabs.initTabGroup(group.childNodes);
++		return wrapper;
++	}
++});
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/realtime.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/realtime.js
+new file mode 100644
+index 0000000000..7d37cd8c8a
+--- /dev/null
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/realtime.js
+@@ -0,0 +1,47 @@
++'use strict';
++'require view';
++'require ui';
++'require dom';
++
++/*
++ * Tabbed container: merges the realtime status pages into one view with
++ * client-side tab switching.  Each pane lazy-loads the original view
++ * logic on first activation, so switching tabs no longer reloads the
++ * entire page.  Hidden panes neither render nor poll until visited.
++ */
++
++const TABS = [
++	['load', _('Load'), 'view.status.load_impl'],
++	['bandwidth', _('Bandwidth'), 'view.status.bandwidth_impl'],
++	['connections', _('Connections'), 'view.status.connections_impl'],
++	['wireless', _('Wireless'), 'view.status.wireless_impl'],
++];
++
++return view.extend({
++	render() {
++		const group = E('div', { 'class': 'cbi-section-node-tabbed' });
++		const wrapper = E('div', {}, group);
++
++		for (const [name, title, path] of TABS) {
++			const pane = E('div', {
++				'data-tab': name,
++				'data-tab-title': title
++			}, E('div', { 'class': 'spinning' }, _('Loading view…')));
++
++			pane.addEventListener('cbi-tab-active', function load() {
++				pane.removeEventListener('cbi-tab-active', load);
++				L.require(path).then(inst =>
++					Promise.resolve(inst.load ? inst.load() : null)
++						.then(data => inst.render(data)))
++				.then(nodes => dom.content(pane, nodes))
++				.catch(err => dom.content(pane,
++					E('div', { 'class': 'alert-message error' }, String(err))));
++			});
++
++			group.appendChild(pane);
++		}
++
++		ui.tabs.initTabGroup(group.childNodes);
++		return wrapper;
++	}
++});
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog.js
+deleted file mode 100644
+index 5240decf86..0000000000
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog.js
++++ /dev/null
+@@ -1,4 +0,0 @@
+-'use strict';
+-'require tools.views as views';
+-
+-return views.LogreadBox(null, _('System Log'));
+\ No newline at end of file
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog_impl.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog_impl.js
+new file mode 100644
+index 0000000000..556a0af8bd
+--- /dev/null
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog_impl.js
+@@ -0,0 +1,8 @@
++'use strict';
++'require tools.views as views';
++
++const xrBase = views.LogreadBox(null, _('System Log'));
++
++return xrBase.extend({
++	__init__() {}
++});
+\ No newline at end of file
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/wireless.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/wireless_impl.js
+similarity index 99%
+rename from modules/luci-mod-status/htdocs/luci-static/resources/view/status/wireless.js
+rename to modules/luci-mod-status/htdocs/luci-static/resources/view/status/wireless_impl.js
+index 6b1affccdf..103c4e1288 100644
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/wireless.js
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/wireless_impl.js
+@@ -17,7 +17,10 @@ const graphPolls = [], pollInterval = 3;
+ 
+ Math.log2 = Math.log2 || function(x) { return Math.log(x) * Math.LOG2E; };
+ 
+-return view.extend({
++const xrLogic = view.extend({
++
++	__init__() {},
++
+ 	load() {
+ 		return Promise.all([
+ 			this.loadSVG(L.resource('svg/wireless.svg')),
+@@ -348,3 +351,5 @@ return view.extend({
+ 	handleSave: null,
+ 	handleReset: null
+ });
++
++return xrLogic;
+diff --git a/modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json b/modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json
+index 23e8bdb61d..e57adb8859 100644
+--- a/modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json
++++ b/modules/luci-mod-status/root/usr/share/luci/menu.d/luci-mod-status.json
+@@ -7,10 +7,11 @@
+ 			"path": "admin_status/index"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-index" ]
++			"acl": [
++				"luci-mod-status-index"
++			]
+ 		}
+ 	},
+-
+ 	"admin/status/routes": {
+ 		"title": "Routing",
+ 		"order": 2,
+@@ -19,14 +20,17 @@
+ 			"path": "status/routes"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-routes" ],
++			"acl": [
++				"luci-mod-status-routes"
++			],
+ 			"fs": [
+-				{ "/usr/libexec/ip-tiny": "absent", "/usr/libexec/ip-full": "absent" }
++				{
++					"/usr/libexec/ip-tiny": "absent",
++					"/usr/libexec/ip-full": "absent"
++				}
+ 			]
+-
+ 		}
+ 	},
+-
+ 	"admin/status/routesj": {
+ 		"title": "Routing",
+ 		"order": 2,
+@@ -35,15 +39,19 @@
+ 			"path": "status/routesj"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-routes-json" ],
++			"acl": [
++				"luci-mod-status-routes-json"
++			],
+ 			"fs": [
+-				{ "/usr/libexec/ip-tiny": "executable" },
+-				{ "/usr/libexec/ip-full": "executable" }
++				{
++					"/usr/libexec/ip-tiny": "executable"
++				},
++				{
++					"/usr/libexec/ip-full": "executable"
++				}
+ 			]
+-
+ 		}
+ 	},
+-
+ 	"admin/status/iptables": {
+ 		"title": "Firewall",
+ 		"order": 3,
+@@ -52,14 +60,21 @@
+ 			"path": "status/iptables"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-firewall" ],
++			"acl": [
++				"luci-mod-status-firewall"
++			],
+ 			"fs": [
+-				{ "/usr/sbin/nft": "absent", "/usr/sbin/iptables": "executable" },
+-				{ "/usr/sbin/nft": "absent", "/usr/sbin/ip6tables": "executable" }
++				{
++					"/usr/sbin/nft": "absent",
++					"/usr/sbin/iptables": "executable"
++				},
++				{
++					"/usr/sbin/nft": "absent",
++					"/usr/sbin/ip6tables": "executable"
++				}
+ 			]
+ 		}
+ 	},
+-
+ 	"admin/status/nftables": {
+ 		"title": "Firewall",
+ 		"order": 3,
+@@ -68,48 +83,33 @@
+ 			"path": "status/nftables"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-firewall" ],
+-			"fs": { "/usr/sbin/nft": "executable" }
++			"acl": [
++				"luci-mod-status-firewall"
++			],
++			"fs": {
++				"/usr/sbin/nft": "executable"
++			}
+ 		}
+ 	},
+-
+ 	"admin/status/nftables/iptables": {
+ 		"action": {
+ 			"type": "view",
+ 			"path": "status/iptables"
+ 		}
+ 	},
+-
+ 	"admin/status/logs": {
+ 		"title": "System Log",
+ 		"order": 4,
+ 		"action": {
+-			"type": "alias",
+-			"path": "admin/status/logs/syslog"
++			"type": "view",
++			"path": "status/logs"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-logs" ]
+-		}
+-	},
+-
+-	"admin/status/logs/syslog": {
+-		"title": "System Log",
+-		"order": 1,
+-		"action": {
+-			"type": "view",
+-			"path": "status/syslog"
+-		}
+-	},
+-
+-	"admin/status/logs/dmesg": {
+-		"title": "Kernel Log",
+-		"order": 2,
+-		"action": {
+-			"type": "view",
+-			"path": "status/dmesg"
++			"acl": [
++				"luci-mod-status-logs"
++			]
+ 		}
+ 	},
+-
+ 	"admin/status/processes": {
+ 		"title": "Processes",
+ 		"order": 6,
+@@ -118,10 +118,11 @@
+ 			"path": "status/processes"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-processes" ]
++			"acl": [
++				"luci-mod-status-processes"
++			]
+ 		}
+ 	},
+-
+ 	"admin/status/channel_analysis": {
+ 		"title": "Channel Analysis",
+ 		"order": 7,
+@@ -130,59 +131,27 @@
+ 			"path": "status/channel_analysis"
+ 		},
+ 		"depends": {
+-			"acl": [ "luci-mod-status-channel_analysis" ],
+-			"uci": { "wireless": { "@wifi-device": true } }
++			"acl": [
++				"luci-mod-status-channel_analysis"
++			],
++			"uci": {
++				"wireless": {
++					"@wifi-device": true
++				}
++			}
+ 		}
+ 	},
+-
+ 	"admin/status/realtime": {
+ 		"title": "Realtime Graphs",
+ 		"order": 7,
+-		"action": {
+-			"type": "alias",
+-			"path": "admin/status/realtime/load"
+-		},
+-		"depends": {
+-			"acl": [ "luci-mod-status-realtime" ]
+-		}
+-	},
+-
+-	"admin/status/realtime/load": {
+-		"title": "Load",
+-		"order": 1,
+-		"action": {
+-			"type": "view",
+-			"path": "status/load"
+-		}
+-	},
+-
+-	"admin/status/realtime/bandwidth": {
+-		"title": "Bandwidth",
+-		"order": 2,
+-		"action": {
+-			"type": "view",
+-			"path": "status/bandwidth"
+-		}
+-	},
+-
+-	"admin/status/realtime/wireless": {
+-		"title": "Wireless",
+-		"order": 3,
+ 		"action": {
+ 			"type": "view",
+-			"path": "status/wireless"
++			"path": "status/realtime"
+ 		},
+ 		"depends": {
+-			"uci": { "wireless": { "@wifi-device": true } }
+-		}
+-	},
+-
+-	"admin/status/realtime/connections": {
+-		"title": "Connections",
+-		"order": 4,
+-		"action": {
+-			"type": "view",
+-			"path": "status/connections"
++			"acl": [
++				"luci-mod-status-realtime"
++			]
+ 		}
+ 	}
+ }

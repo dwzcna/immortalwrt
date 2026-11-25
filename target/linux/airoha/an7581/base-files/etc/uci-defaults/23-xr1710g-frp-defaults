@@ -1,0 +1,17 @@
+# Disable frpc/frps by default: their init scripts have no enable gate and
+# the stock config points server_addr at 127.0.0.1, which exit-loops under
+# procd respawn. Only disable while the config is untouched (server still
+# 127.0.0.1) so a user-configured setup survives sysupgrades.
+frpc_addr="$(uci -q get frpc.common.server_addr)"
+if [ "$frpc_addr" = "127.0.0.1" ] || [ -z "$frpc_addr" ]; then
+	/etc/init.d/frpc disable 2>/dev/null
+	/etc/init.d/frpc stop 2>/dev/null
+fi
+
+frps_bind="$(uci -q get frps.common.bind_port)"
+if [ -z "$frps_bind" ] || [ "$frps_bind" = "7000" ]; then
+	/etc/init.d/frps disable 2>/dev/null
+	/etc/init.d/frps stop 2>/dev/null
+fi
+
+exit 0

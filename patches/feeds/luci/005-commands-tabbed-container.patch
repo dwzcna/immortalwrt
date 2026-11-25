@@ -1,0 +1,383 @@
+diff --git a/applications/luci-app-commands/htdocs/luci-static/resources/view/commands.js b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands.js
+index 44ca5b8f37..69ca26575e 100644
+--- a/applications/luci-app-commands/htdocs/luci-static/resources/view/commands.js
++++ b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands.js
+@@ -1,39 +1,45 @@
+ 'use strict';
+-
+ 'require view';
+-'require form';
+-
+-return view.extend({
+-	render: function(data) {
+-		let m, s, o;
+-
+-		m = new form.Map('luci', _('Custom Commands'),
+-			_('This page allows you to configure custom shell commands which can be easily invoked from the web interface.'));
+-
+-		s = m.section(form.GridSection, 'command');
+-		s.nodescriptions = true;
+-		s.anonymous = true;
+-		s.addremove = true;
+-		s.sortable = true;
++'require ui';
++'require dom';
+ 
+-		o = s.option(form.Value, 'name', _('Name'),
+-			_('A short name for the configured command'));
++/*
++ * Tabbed container: merges the custom commands pages into one view with
++ * client-side tab switching.  Each pane lazy-loads the original view
++ * logic on first activation, so switching tabs no longer reloads the
++ * entire page.  Hidden panes neither render nor poll until visited.
++ */
+ 
+-		o = s.option(form.Value, 'description', _('Description'),
+-			_('An optional longer description to display on the execution page'));
+-		o.optional = true;
++const TABS = [
++	['dashboard', _('Dashboard'), 'view.commands.dashboard_impl'],
++	['config', _('Configure'), 'view.commands.config_impl'],
++];
+ 
+-		o = s.option(form.Value, 'command', _('Command'), _('Command line to execute'));
+-		o.textvalue = function(section_id) {
+-			return E('code', [ this.cfgvalue(section_id) ]);
+-		};
+-
+-		o = s.option(form.Flag, 'param', _('Custom arguments'),
+-			_('Allow the user to provide additional command line arguments'));
+-
+-		o = s.option(form.Flag, 'public', _('Public access'),
+-			_('Allow executing the command and downloading its output without prior authentication'));
+-
+-		return m.render();
++return view.extend({
++	render() {
++		const group = E('div', { 'class': 'cbi-section-node-tabbed' });
++		const wrapper = E('div', {}, group);
++
++		for (const [name, title, path] of TABS) {
++			const pane = E('div', {
++				'data-tab': name,
++				'data-tab-title': title
++			}, E('div', { 'class': 'spinning' }, _('Loading view…')));
++
++			pane.addEventListener('cbi-tab-active', function load() {
++				pane.removeEventListener('cbi-tab-active', load);
++				L.require(path).then(inst =>
++					Promise.resolve(inst.load ? inst.load() : null)
++						.then(data => inst.render(data)))
++				.then(nodes => dom.content(pane, nodes))
++				.catch(err => dom.content(pane,
++					E('div', { 'class': 'alert-message error' }, String(err))));
++			});
++
++			group.appendChild(pane);
++		}
++
++		ui.tabs.initTabGroup(group.childNodes);
++		return wrapper;
+ 	}
+ });
+diff --git a/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/config_impl.js b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/config_impl.js
+new file mode 100644
+index 0000000000..f44ff52cae
+--- /dev/null
++++ b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/config_impl.js
+@@ -0,0 +1,44 @@
++'use strict';
++
++'require view';
++'require form';
++
++const xrLogic = view.extend({
++
++	__init__() {},
++
++	render: function(data) {
++		let m, s, o;
++
++		m = new form.Map('luci', _('Custom Commands'),
++			_('This page allows you to configure custom shell commands which can be easily invoked from the web interface.'));
++
++		s = m.section(form.GridSection, 'command');
++		s.nodescriptions = true;
++		s.anonymous = true;
++		s.addremove = true;
++		s.sortable = true;
++
++		o = s.option(form.Value, 'name', _('Name'),
++			_('A short name for the configured command'));
++
++		o = s.option(form.Value, 'description', _('Description'),
++			_('An optional longer description to display on the execution page'));
++		o.optional = true;
++
++		o = s.option(form.Value, 'command', _('Command'), _('Command line to execute'));
++		o.textvalue = function(section_id) {
++			return E('code', [ this.cfgvalue(section_id) ]);
++		};
++
++		o = s.option(form.Flag, 'param', _('Custom arguments'),
++			_('Allow the user to provide additional command line arguments'));
++
++		o = s.option(form.Flag, 'public', _('Public access'),
++			_('Allow executing the command and downloading its output without prior authentication'));
++
++		return m.render();
++	}
++});
++
++return xrLogic;
+diff --git a/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/dashboard_impl.js b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/dashboard_impl.js
+new file mode 100644
+index 0000000000..4735f6e91c
+--- /dev/null
++++ b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/dashboard_impl.js
+@@ -0,0 +1,187 @@
++'use strict';
++'require view';
++'require uci';
++'require dom';
++'require request';
++
++/*
++ * JS port of the luci-app-commands dashboard (originally the server-side
++ * ucode template commands.ut), used as a lazy-loaded pane of the tabbed
++ * commands container.  The run/download/link dispatcher endpoints are
++ * unchanged.
++ */
++
++const cmdCSS = `
++	.commands {
++		display: flex;
++		flex-wrap: wrap;
++	}
++
++	.commandbox {
++		flex: 0 0 30%;
++		margin: .5em;
++		display: flex;
++		flex-direction: column;
++	}
++
++	.commandbox > p,
++	.commandbox > p > * {
++		display: block;
++	}
++
++	.commandbox div {
++		margin-top: auto;
++	}
++`;
++
++return view.extend({
++
++	__init__() {},
++
++	load() {
++		return uci.load('luci');
++	},
++
++	commandRun(ev, id) {
++		const field = document.getElementById(id);
++		const legend = document.getElementById('command-rc-legend');
++		const output = document.getElementById('command-rc-output');
++
++		if (!legend || !output)
++			return;
++
++		output.innerHTML =
++			'<img src="' + L.resource('icons/loading.svg') + '" alt="' + _('Loading') + '" style="vertical-align:middle" /> ' +
++			_('Waiting for command to complete...');
++
++		legend.parentNode.style.display = 'block';
++		legend.style.display = 'inline';
++
++		const options = field ? { query: { args: field.value } } : null;
++		request.get(L.url('admin/system/commands/run', id), options).then(reply => {
++			const st = reply.json();
++
++			if (st.binary)
++				st.stdout = '[' + _('Binary data not displayed, download instead.') + ']';
++
++			output.innerHTML = (
++				'<pre><strong># %h\n</strong>%h<span style="color:red">%h</span></pre>' +
++				'<div class="alert-message warning">%h (%h %d)</div>'
++			).format(
++				st.command, st.stdout, st.stderr,
++				(st.exitcode == 0) ? _('Command successful') : _('Command failed'),
++				_('Code:'), st.exitcode);
++		}).catch(() => {
++			output.innerHTML = '<span class="error">%h</span>'.format(_('Failed to execute command!'));
++		}).finally(() => {
++			legend.style.display = 'none';
++			location.hash = '#output';
++		});
++
++		ev.preventDefault();
++	},
++
++	commandDownload(ev, id) {
++		const field = document.getElementById(id);
++		const args = field ? encodeURIComponent(field.value) : null;
++
++		location.href = L.url('admin/system/commands/download', id) + (args ? '/' + args : '');
++
++		ev.preventDefault();
++	},
++
++	commandLink(ev, id) {
++		const legend = document.getElementById('command-rc-legend');
++		const output = document.getElementById('command-rc-output');
++
++		const field = document.getElementById(id);
++		const args = field ? encodeURIComponent(field.value) : null;
++
++		if (!legend || !output)
++			return;
++
++		const prefix = location.protocol + '//' + location.host + L.url('command') + '/';
++		const suffix = (args ? '?args=' + args : '');
++
++		const link = prefix + id + suffix;
++		const linkNodownload = prefix + id + 's' + suffix;
++
++		legend.style.display = 'none';
++		output.parentNode.style.display = 'block';
++		output.innerHTML = (
++			'<div class="alert-message"><p>%h <a href="%s">%s</a></p><p>%h <a href="%s">%s</a></p></div>'
++		).format(
++			_('Download execution result'), link, link,
++			_('Or display result'), linkNodownload, linkNodownload);
++
++		location.hash = '#output';
++
++		ev.preventDefault();
++	},
++
++	render() {
++		const commands = uci.sections('luci', 'command');
++		const boxes = [];
++
++		for (const command of commands) {
++			const children = [
++				E('h3', {}, command.name),
++				E('p', {}, [ _('Command:'), ' ', E('code', {}, command.command) ])
++			];
++
++			if (command.description)
++				children.push(E('p', {}, E('em', {}, command.description)));
++
++			if (command.param == '1')
++				children.push(E('p', {}, [ _('Arguments:'), ' ',
++					E('input', { type: 'text', id: command['.name'] }) ]));
++
++			const buttons = [
++				E('button', {
++					'class': 'cbi-button cbi-button-apply',
++					'click': (ev) => this.commandRun(ev, command['.name'])
++				}, _('Run')),
++				' ',
++				E('button', {
++					'class': 'cbi-button cbi-button-download',
++					'click': (ev) => this.commandDownload(ev, command['.name'])
++				}, _('Download'))
++			];
++
++			if (command.public == '1')
++				buttons.push(' ',
++					E('button', {
++						'class': 'cbi-button cbi-button-link',
++						'click': (ev) => this.commandLink(ev, command['.name'])
++					}, _('Link')));
++
++			children.push(E('div', {}, buttons));
++
++			boxes.push(E('div', { 'class': 'commandbox' }, children));
++		}
++
++		const body = boxes.length
++			? E('div', { 'class': 'commands' }, boxes)
++			: E('div', { 'class': 'cbi-section' },
++				E('div', { 'class': 'table cbi-section-table' },
++					E('div', { 'class': 'tr cbi-section-table-row' },
++						E('p', {}, E('em', {}, _('This section contains no values yet'))))));
++
++		return E([], [
++			E('style', { type: 'text/css' }, cmdCSS),
++			E('div', { 'class': 'cbi-map' }, [
++				E('h2', { 'name': 'content' }, _('Custom Commands')),
++				body,
++				E('a', { 'name': 'output' })
++			]),
++			E('fieldset', { 'class': 'cbi-section', 'style': 'display:none' }, [
++				E('legend', { 'id': 'command-rc-legend' }, _('Collecting data...')),
++				E('span', { 'id': 'command-rc-output' })
++			])
++		]);
++	},
++
++	handleSave: null,
++	handleSaveApply: null,
++	handleReset: null
++});
+diff --git a/applications/luci-app-commands/root/usr/share/luci/menu.d/luci-app-commands.json b/applications/luci-app-commands/root/usr/share/luci/menu.d/luci-app-commands.json
+index 8230b14bc6..5d14de43a4 100644
+--- a/applications/luci-app-commands/root/usr/share/luci/menu.d/luci-app-commands.json
++++ b/applications/luci-app-commands/root/usr/share/luci/menu.d/luci-app-commands.json
+@@ -2,32 +2,16 @@
+ 	"admin/system/commands": {
+ 		"title": "Custom Commands",
+ 		"order": 80,
+-		"action": {
+-			"type": "firstchild"
+-		},
+-		"depends": {
+-			"acl": [ "luci-app-commands" ]
+-		}
+-	},
+-
+-	"admin/system/commands/dashboard": {
+-		"title": "Dashboard",
+-		"order": 1,
+-		"action": {
+-			"type": "template",
+-			"path": "commands"
+-		}
+-	},
+-
+-	"admin/system/commands/config": {
+-		"title": "Configure",
+-		"order": 2,
+ 		"action": {
+ 			"type": "view",
+ 			"path": "commands"
++		},
++		"depends": {
++			"acl": [
++				"luci-app-commands"
++			]
+ 		}
+ 	},
+-
+ 	"admin/system/commands/run/*": {
+ 		"order": 3,
+ 		"action": {
+@@ -36,7 +20,6 @@
+ 			"function": "action_run"
+ 		}
+ 	},
+-
+ 	"admin/system/commands/download/*": {
+ 		"order": 4,
+ 		"action": {
+@@ -45,7 +28,6 @@
+ 			"function": "action_download"
+ 		}
+ 	},
+-
+ 	"command/*": {
+ 		"action": {
+ 			"type": "function",

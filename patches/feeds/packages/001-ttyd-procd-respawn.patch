@@ -1,0 +1,12 @@
+diff --git a/utils/ttyd/files/ttyd.init b/utils/ttyd/files/ttyd.init
+index 7e24aeab2..a3e7a64f0 100644
+--- a/utils/ttyd/files/ttyd.init
++++ b/utils/ttyd/files/ttyd.init
+@@ -60,6 +60,7 @@ ttyd_instance()
+ 	[ "$ssl" = 0 ] && ssl=""
+ 
+ 	procd_open_instance
++	procd_set_param respawn
+ 	procd_set_param command "$PROG" \
+ 		${port:+-p $port} \
+ 		${interface:+-i $interface} \
