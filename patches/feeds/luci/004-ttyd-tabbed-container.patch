@@ -1,0 +1,172 @@
+diff --git a/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/config.js b/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/config_impl.js
+similarity index 98%
+rename from applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/config.js
+rename to applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/config_impl.js
+index c9d1a1d8af..2fe0aef8ce 100644
+--- a/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/config.js
++++ b/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/config_impl.js
+@@ -3,7 +3,10 @@
+ 'require form';
+ 'require tools.widgets as widgets';
+ 
+-return view.extend({
++const xrLogic = view.extend({
++
++	__init__() {},
++
+ 	render: function() {
+ 		let m, s, o;
+ 
+@@ -96,3 +99,5 @@ return view.extend({
+ 		return m.render();
+ 	}
+ });
++
++return xrLogic;
+diff --git a/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term.js b/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term.js
+index fac6da51a2..9f37b89a23 100644
+--- a/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term.js
++++ b/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term.js
+@@ -1,24 +1,45 @@
+ 'use strict';
+ 'require view';
+-'require uci';
++'require ui';
++'require dom';
++
++/*
++ * Tabbed container: merges the terminal pages into one view with
++ * client-side tab switching.  Each pane lazy-loads the original view
++ * logic on first activation, so switching tabs no longer reloads the
++ * entire page.  Hidden panes neither render nor poll until visited.
++ */
++
++const TABS = [
++	['ttyd', _('Terminal'), 'view.ttyd.term_impl'],
++	['config', _('Config'), 'view.ttyd.config_impl'],
++];
+ 
+ return view.extend({
+-	load: function() {
+-		return uci.load('ttyd');
+-	},
+-	render: function() {
+-		var port = uci.get_first('ttyd', 'ttyd', 'port') || '7681',
+-			ssl = uci.get_first('ttyd', 'ttyd', 'ssl') || '0',
+-			url = uci.get_first('ttyd', 'ttyd', 'url_override');
+-		if (port === '0')
+-			return E('div', { class: 'alert-message warning' },
+-					_('Random ttyd port (port=0) is not supported.<br />Change to a fixed port and try again.'));
+-		return E('iframe', {
+-			src: url || ((ssl === '1' ? 'https' : 'http') + '://' + window.location.hostname + ':' + port),
+-			style: 'width: 100%; min-height: 500px; border: none; border-radius: 3px; resize: vertical;'
+-		});
+-	},
+-	handleSaveApply: null,
+-	handleSave: null,
+-	handleReset: null
++	render() {
++		const group = E('div', { 'class': 'cbi-section-node-tabbed' });
++		const wrapper = E('div', {}, group);
++
++		for (const [name, title, path] of TABS) {
++			const pane = E('div', {
++				'data-tab': name,
++				'data-tab-title': title
++			}, E('div', { 'class': 'spinning' }, _('Loading view…')));
++
++			pane.addEventListener('cbi-tab-active', function load() {
++				pane.removeEventListener('cbi-tab-active', load);
++				L.require(path).then(inst =>
++					Promise.resolve(inst.load ? inst.load() : null)
++						.then(data => inst.render(data)))
++				.then(nodes => dom.content(pane, nodes))
++				.catch(err => dom.content(pane,
++					E('div', { 'class': 'alert-message error' }, String(err))));
++			});
++
++			group.appendChild(pane);
++		}
++
++		ui.tabs.initTabGroup(group.childNodes);
++		return wrapper;
++	}
+ });
+diff --git a/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term_impl.js b/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term_impl.js
+new file mode 100644
+index 0000000000..e57f7b598f
+--- /dev/null
++++ b/applications/luci-app-ttyd/htdocs/luci-static/resources/view/ttyd/term_impl.js
+@@ -0,0 +1,29 @@
++'use strict';
++'require view';
++'require uci';
++
++const xrLogic = view.extend({
++
++	__init__() {},
++
++	load: function() {
++		return uci.load('ttyd');
++	},
++	render: function() {
++		var port = uci.get_first('ttyd', 'ttyd', 'port') || '7681',
++			ssl = uci.get_first('ttyd', 'ttyd', 'ssl') || '0',
++			url = uci.get_first('ttyd', 'ttyd', 'url_override');
++		if (port === '0')
++			return E('div', { class: 'alert-message warning' },
++					_('Random ttyd port (port=0) is not supported.<br />Change to a fixed port and try again.'));
++		return E('iframe', {
++			src: url || ((ssl === '1' ? 'https' : 'http') + '://' + window.location.hostname + ':' + port),
++			style: 'width: 100%; min-height: 500px; border: none; border-radius: 3px; resize: vertical;'
++		});
++	},
++	handleSaveApply: null,
++	handleSave: null,
++	handleReset: null
++});
++
++return xrLogic;
+diff --git a/applications/luci-app-ttyd/root/usr/share/luci/menu.d/luci-app-ttyd.json b/applications/luci-app-ttyd/root/usr/share/luci/menu.d/luci-app-ttyd.json
+index 4559063e87..81c1336e22 100644
+--- a/applications/luci-app-ttyd/root/usr/share/luci/menu.d/luci-app-ttyd.json
++++ b/applications/luci-app-ttyd/root/usr/share/luci/menu.d/luci-app-ttyd.json
+@@ -1,30 +1,17 @@
+ {
+ 	"admin/system/ttyd": {
+ 		"title": "Terminal",
+-		"action": {
+-			"type": "firstchild"
+-		},
+-		"depends": {
+-			"acl": [ "luci-app-ttyd" ],
+-			"uci": { "ttyd": true }
+-		}
+-	},
+-
+-	"admin/system/ttyd/ttyd": {
+-		"title": "Terminal",
+-		"order": 1,
+ 		"action": {
+ 			"type": "view",
+ 			"path": "ttyd/term"
+-		}
+-	},
+-
+-	"admin/system/ttyd/config": {
+-		"title": "Config",
+-		"order": 2,
+-		"action": {
+-			"type": "view",
+-			"path": "ttyd/config"
++		},
++		"depends": {
++			"acl": [
++				"luci-app-ttyd"
++			],
++			"uci": {
++				"ttyd": true
++			}
+ 		}
+ 	}
+ }
