@@ -135,7 +135,7 @@ new file mode 100644
 index 0000000000..4735f6e91c
 --- /dev/null
 +++ b/applications/luci-app-commands/htdocs/luci-static/resources/view/commands/dashboard_impl.js
-@@ -0,0 +1,185 @@
+@@ -0,0 +1,187 @@
 +'use strict';
 +'require view';
 +'require uci';
@@ -202,9 +202,10 @@ index 0000000000..4735f6e91c
 +			if (st.binary)
 +				st.stdout = '[' + _('Binary data not displayed, download instead.') + ']';
 +
-+			output.innerHTML = String.format(
++			output.innerHTML = (
 +				'<pre><strong># %h\n</strong>%h<span style="color:red">%h</span></pre>' +
-+				'<div class="alert-message warning">%h (%h %d)</div>',
++				'<div class="alert-message warning">%h (%h %d)</div>'
++			).format(
 +				st.command, st.stdout, st.stderr,
 +				(st.exitcode == 0) ? _('Command successful') : _('Command failed'),
 +				_('Code:'), st.exitcode);
@@ -245,8 +246,9 @@ index 0000000000..4735f6e91c
 +
 +		legend.style.display = 'none';
 +		output.parentNode.style.display = 'block';
-+		output.innerHTML = String.format(
-+			'<div class="alert-message"><p>%h <a href="%s">%s</a></p><p>%h <a href="%s">%s</a></p></div>',
++		output.innerHTML = (
++			'<div class="alert-message"><p>%h <a href="%s">%s</a></p><p>%h <a href="%s">%s</a></p></div>'
++		).format(
 +			_('Download execution result'), link, link,
 +			_('Or display result'), linkNodownload, linkNodownload);
 +
