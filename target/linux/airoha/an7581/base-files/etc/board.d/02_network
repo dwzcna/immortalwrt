@@ -25,6 +25,12 @@ an7581_setup_interfaces()
 		ucidef_set_wireless "2g" "ImmortalWRT${mac6:+-}${mac6}"
 		ucidef_set_wireless "5g" "ImmortalWRT${mac6:+-}${mac6}-5G"
 		ucidef_set_wireless "6g" "ImmortalWRT${mac6:+-}${mac6}-6G"
+		# Fresh configuration: one independent MLD per supported band.
+		json_select_object wlan
+			json_select_object defaults
+				json_add_boolean mlo 1
+			json_select ..
+		json_select ..
 		;;
 	nokia,valyrian)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 eth2" "eth1"

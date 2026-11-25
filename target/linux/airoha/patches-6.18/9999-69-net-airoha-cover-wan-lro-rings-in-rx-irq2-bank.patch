@@ -1,0 +1,47 @@
+From: Devin <devin@cognition.ai>
+Subject: [PATCH] net: airoha: cover WAN LRO rings in RX IRQ2 bank
+
+Adapted from orangeyoo/XR1710G-OpenWrt-iStoreOS-Community
+9999-30-net-airoha-wan-lro-rx-irq-coverage.
+
+The QDMA1 (WAN) RX IRQ2 bank pin mask is 0, so LRO rings 5, 21 and 22
+are acknowledged by no IRQ bank on the WAN QDMA and aggregated WAN
+flows landing on them stall.  Pin exactly those three rings to IRQ2,
+which is otherwise unused, and assert at build time that the shared
+LRO ring set is fully covered and not double-mapped.
+
+Signed-off-by: Devin <devin@cognition.ai>
+---
+ drivers/net/ethernet/airoha/airoha_eth.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/ethernet/airoha/airoha_eth.c
++++ b/drivers/net/ethernet/airoha/airoha_eth.c
+@@ -36,7 +36,7 @@ static struct dentry *airoha_eth_dbgfs_d
+ /* QDMA1 uses a different RX IRQ bank layout than QDMA0 on AN7581. */
+ #define AIROHA_QDMA_WAN_RX_IRQ0_BANK_PIN_MASK 0x0000839f
+ #define AIROHA_QDMA_WAN_RX_IRQ1_BANK_PIN_MASK 0x7f800400
+-#define AIROHA_QDMA_WAN_RX_IRQ2_BANK_PIN_MASK 0x00000000
++#define AIROHA_QDMA_WAN_RX_IRQ2_BANK_PIN_MASK (BIT(5) | BIT(21) | BIT(22))
+ #define AIROHA_QDMA_WAN_RX_IRQ3_BANK_PIN_MASK 0x00000040
+ 
+ static unsigned int airoha_qdma0_rx_irq_bank_mask[AIROHA_MAX_NUM_IRQ_BANKS] = {
+@@ -724,6 +724,18 @@ static void airoha_dev_lro_enable(struc
+ 	int qdma_id = qdma - &eth->qdma[0];
+ 	int i, lro_queue_index = 0;
+ 
++	/* LRO producers share the ring set on both QDMAs. */
++	BUILD_BUG_ON(AIROHA_RXQ_LRO_EN_MASK &
++		     ~(AIROHA_QDMA_WAN_RX_IRQ0_BANK_PIN_MASK |
++		       AIROHA_QDMA_WAN_RX_IRQ1_BANK_PIN_MASK |
++		       AIROHA_QDMA_WAN_RX_IRQ2_BANK_PIN_MASK |
++		       AIROHA_QDMA_WAN_RX_IRQ3_BANK_PIN_MASK));
++	/* A ring must not be acknowledged by two IRQ banks. */
++	BUILD_BUG_ON(AIROHA_QDMA_WAN_RX_IRQ2_BANK_PIN_MASK &
++		     (AIROHA_QDMA_WAN_RX_IRQ0_BANK_PIN_MASK |
++		      AIROHA_QDMA_WAN_RX_IRQ1_BANK_PIN_MASK |
++		      AIROHA_QDMA_WAN_RX_IRQ3_BANK_PIN_MASK));
++
+ 	if (airoha_fe_lro_is_enabled(eth, qdma_id))
+ 		return;
+ 
