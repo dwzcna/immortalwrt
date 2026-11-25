@@ -1,0 +1,12 @@
+# Drop the stock '@lan' interface binding from ttyd: br-lan carries multiple
+# IPv6 addresses while libwebsockets is built IPV6-off, and resolving the
+# bind address at boot makes ttyd exit right after listening. Binding to all
+# interfaces also matches the WAN-side LuCI access use case; the WAN firewall
+# still blocks port 7681 from outside.
+if [ "$(uci -q get ttyd.@ttyd[0].interface)" = "@lan" ]; then
+	uci delete ttyd.@ttyd[0].interface
+	uci commit ttyd
+	/etc/init.d/ttyd restart 2>/dev/null
+fi
+
+exit 0
