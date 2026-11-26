@@ -1,0 +1,7 @@
+# Compatibility stub: dropbear is replaced by openssh-server on full images,
+# but the LuCI SSH Access tab reads this uci config. Settings here are inert
+# for openssh; real sshd policy lives in /etc/ssh/sshd_config.d/.
+config dropbear
+	option Port '22'
+	option PasswordAuth 'on'
+	option RootPasswordAuth 'on'
