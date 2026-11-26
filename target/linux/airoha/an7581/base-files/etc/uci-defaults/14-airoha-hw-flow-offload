@@ -1,16 +1,19 @@
 #!/bin/sh
 
-# OAF (open-app-filter) inspects every packet in netfilter; any flow offload
-# (software or PPE hardware fastpath) bypasses the kernel and blinds it.
-# Keep both OFF by default; users can re-enable in Network -> Firewall
-# at the cost of appfilter statistics/filtering.
+# Enable routed/NAT hardware flow offload by default on AN7581 boards.
+# This is required for WAN <-> LAN PPE/NPU fastpath via fw4/nft_flow_offload.
+# Note: open-app-filter (oaf) needs offload OFF to see traffic; users who
+# use appfilter should disable offload manually in Network -> Firewall.
 
 . /lib/functions.sh
 
 config_load firewall
 
-uci set firewall.@defaults[0].flow_offloading='0'
-uci set firewall.@defaults[0].flow_offloading_hw='0'
+config_get flow_offloading defaults flow_offloading
+config_get flow_offloading_hw defaults flow_offloading_hw
+
+[ -n "$flow_offloading" ] || uci set firewall.@defaults[0].flow_offloading='1'
+[ -n "$flow_offloading_hw" ] || uci set firewall.@defaults[0].flow_offloading_hw='1'
 
 uci commit firewall
 
