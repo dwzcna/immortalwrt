@@ -207,6 +207,8 @@
          stay in-content so they don't get mixed with top-level tabs. */
       if (!headerSub) return;
       if (headerSub.dataset.source === 'menu') {
+        if (currentTabmenu)
+          currentTabmenu.style.display = '';
         currentTabmenu = null;
         stopSliderTracking();
         return;

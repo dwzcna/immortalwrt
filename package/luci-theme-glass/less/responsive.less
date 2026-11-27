@@ -6,6 +6,8 @@
 @media (max-width: 1024px) {
   #sidebar {
     transform: translateX(calc(-100% - var(--sidebar-gap)));
+    /* overlay sidebar must sit above the fixed header/sub-nav bars */
+    z-index: calc(var(--z-header) + 1);
 
     &.open {
       transform: translateX(0);
@@ -122,5 +124,12 @@
   .glass-footer {
     text-align: left;
     overflow-wrap: anywhere;
+  }
+
+  /* Keep tables containing progressbars as real tables: display:block on
+     the table makes rows shrink-wrap to content, so memory/storage bars
+     end up with inconsistent narrow widths on mobile. */
+  .table:has(.cbi-progressbar) {
+    display: table;
   }
 }

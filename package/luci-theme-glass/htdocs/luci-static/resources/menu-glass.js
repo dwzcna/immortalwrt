@@ -282,6 +282,17 @@ return baseclass.extend({
 				(function(navItem, subEl) {
 					function toggleSubmenu() {
 						var open = !subEl.classList.contains('open');
+						if (open && document.documentElement.dataset.menuAccordion === '1') {
+							subEl.parentElement.querySelectorAll(':scope > .nav-sub.open, :scope > .nav-item.open').forEach(function(el) {
+								if (el === subEl || el === navItem) return;
+								el.classList.remove('open');
+								el.setAttribute('aria-expanded', 'false');
+								if (el.classList.contains('nav-sub')) {
+									el.setAttribute('aria-hidden', 'true');
+									el.setAttribute('inert', '');
+								}
+							});
+						}
 						subEl.classList.toggle('open', open);
 						navItem.classList.toggle('open', open);
 						navItem.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -318,7 +329,12 @@ return baseclass.extend({
 		if (children.length == 0)
 			return E([]);
 
-		/* Clear any CBI tabs that footer.ut added before menu loaded */
+		/* footer.ut may have moved a CBI tabmenu into header-sub and hidden the
+		   original before the menu data loaded; restore in-content tabmenus */
+		document.querySelectorAll('.cbi-tabmenu').forEach(function(tm) {
+			if (tm.style.display === 'none')
+				tm.style.display = '';
+		});
 		container.innerHTML = '';
 		container.setAttribute('data-source', 'menu');
 		container.classList.remove('active');

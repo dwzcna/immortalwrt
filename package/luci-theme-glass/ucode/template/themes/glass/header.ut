@@ -25,6 +25,7 @@
   let glass_blur_dark = '25';
   let glass_transparency_dark = '0.30';
   let glass_font_size = '14';
+  let glass_menu_accordion = '0';
 
   let cfg = cursor();
   if (access('/etc/config/glass')) {
@@ -37,6 +38,7 @@
     glass_blur_dark         = cfg.get_first('glass', 'global', 'blur_dark')         ?? glass_blur_dark;
     glass_transparency_dark = cfg.get_first('glass', 'global', 'transparency_dark') ?? glass_transparency_dark;
     glass_font_size         = cfg.get_first('glass', 'global', 'font_size')         ?? glass_font_size;
+    glass_menu_accordion    = cfg.get_first('glass', 'global', 'menu_accordion')    ?? glass_menu_accordion;
   }
 
   /* UCI is root-editable, so validate values before embedding them in CSS. */
@@ -58,6 +60,8 @@
     glass_transparency_dark = '0.30';
   if (!(glass_font_size in ['13', '14', '16', '18']))
     glass_font_size = '14';
+  if (!(glass_menu_accordion in ['0', '1']))
+    glass_menu_accordion = '0';
 
   const glass_primary_rgb = sprintf('%d, %d, %d',
     int(substr(glass_primary, 1, 2), 16),
@@ -92,7 +96,7 @@
   }
 -%}
 <!DOCTYPE html>
-<html lang="{{ dispatcher.lang }}" data-glass-effects="{{ glass_effects }}" data-has-background="{{ bg_src ? '1' : '0' }}">
+<html lang="{{ dispatcher.lang }}" data-glass-effects="{{ glass_effects }}" data-menu-accordion="{{ glass_menu_accordion }}" data-has-background="{{ bg_src ? '1' : '0' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=Glass - Apple-inspired glassmorphism theme for LuCI
 LUCI_DEPENDS:=
 PKG_VERSION:=$(shell cat $(CURDIR)/ucode/template/themes/glass/version | tr -d '[:space:]')
-PKG_RELEASE:=1
+PKG_RELEASE:=21
 
 # The package directory retains its upstream .git metadata, so luci.mk's
 # findrev-based translation version would not change with integration commits.
