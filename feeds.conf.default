@@ -1,3 +1,4 @@
+src-git vantage https://github.com/anothaDev/luci-theme-vantage.git^v1.2.1
 src-cpy immortalwrt_packages feeds-src/immortalwrt_packages
 src-git packages https://github.com/immortalwrt/packages.git
 src-git luci https://github.com/immortalwrt/luci.git
