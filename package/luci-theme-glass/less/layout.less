@@ -28,7 +28,6 @@
   left: var(--sidebar-gap);
   width: var(--sidebar-width);
   height: calc(100vh - var(--sidebar-gap) * 2);
-  height: calc(100dvh - var(--sidebar-gap) * 2);
   z-index: var(--z-sidebar);
   /* True glassmorphism — multi-stop gradient, stronger for readability */
   background-image: linear-gradient(
@@ -40,8 +39,8 @@
     rgba(240, 245, 255, 0.19) 100%
   );
   background-color: rgba(255, 255, 255, 0.62);
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(30px) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(30px) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.40);
   box-shadow:
     0 8px 40px rgba(0, 0, 0, 0.08),
@@ -115,7 +114,7 @@
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0;
+    letter-spacing: 0.05em;
   }
 }
 
@@ -140,8 +139,8 @@
     background: rgba(255, 255, 255, 0.45);
     color: var(--color-text);
     font-weight: var(--font-weight-medium);
-    backdrop-filter: var(--glass-detail-filter);
-    -webkit-backdrop-filter: var(--glass-detail-filter);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     box-shadow:
       0 1px 3px rgba(0, 0, 0, 0.08),
       inset 0 1px 1px rgba(255, 255, 255, 0.60),
@@ -240,8 +239,8 @@
     opacity: 0;
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.35);
-    backdrop-filter: var(--glass-detail-filter);
-    -webkit-backdrop-filter: var(--glass-detail-filter);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
     border: 0.5px solid rgba(255, 255, 255, 0.45);
     box-shadow:
       0 1px 3px rgba(0, 0, 0, 0.04),
@@ -325,8 +324,8 @@
     rgba(230, 240, 255, 0.12) 100%
   );
   background-color: transparent;
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.35);
   box-shadow:
     0 2px 16px rgba(0, 0, 0, 0.06),
@@ -341,13 +340,6 @@
   display: flex;
   align-items: center;
   position: relative;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .header-sep {
@@ -392,8 +384,8 @@
   opacity: 0;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.08),
     inset 0 1px 1px rgba(255, 255, 255, 0.60),
@@ -433,7 +425,6 @@
     color: var(--color-text-secondary);
     white-space: nowrap;
     cursor: default;
-    font-variant-numeric: tabular-nums;
     transition: color 0.3s ease;
 
     .indicator-icon {
@@ -467,22 +458,6 @@
     border-left: 0.5px solid rgba(128, 128, 128, 0.25);
     padding-left: var(--space-sm);
   }
-
-  [data-indicator="cpu"] .indicator-value,
-  [data-indicator="ram"] .indicator-value {
-    min-width: 3ch;
-    text-align: right;
-  }
-
-  [data-indicator="net"] .indicator-value {
-    min-width: 11ch;
-    text-align: right;
-  }
-
-  [data-indicator="uptime"] .indicator-value {
-    min-width: 8ch;
-    text-align: right;
-  }
 }
 
 /* ---- Glass pill badges (title + indicators) ---- */
@@ -506,8 +481,8 @@
     0 1px 2px rgba(0, 0, 0, 0.03),
     0 0 0 0.5px rgba(255, 255, 255, 0.08) inset,
     0 1px 6px rgba(255, 255, 255, 0.10) inset;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
 }
 
 .header-title {
@@ -554,8 +529,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);
@@ -618,9 +593,6 @@ html[data-theme="dark"] .theme-icon-dark {
   padding: var(--space-sm);
   margin-right: var(--space-md);
   color: var(--color-text);
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
 
   svg {
     width: 22px;
@@ -655,8 +627,8 @@ html[data-theme="dark"] .theme-icon-dark {
     rgba(230, 240, 255, 0.12) 100%
   );
   background-color: transparent;
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.08),
@@ -686,7 +658,7 @@ html[data-theme="dark"] .theme-icon-dark {
   white-space: nowrap;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    box-shadow var(--transition-fast), backdrop-filter var(--transition-fast);
 
   &:hover {
     background: rgba(0, 0, 0, 0.04);
@@ -714,9 +686,11 @@ html[data-theme="dark"] .theme-icon-dark {
 @keyframes page-enter {
   from {
     opacity: 0;
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -725,10 +699,14 @@ html[data-theme="dark"] .theme-icon-dark {
   margin-left: calc(var(--sidebar-width) + var(--sidebar-gap) * 2);
   margin-top: calc(44px + var(--sidebar-gap) * 2);
   min-height: calc(100vh - 44px - var(--sidebar-gap) * 2);
-  min-height: calc(100dvh - 44px - var(--sidebar-gap) * 2);
   padding: var(--content-padding);
   transition: margin-left var(--transition-slow);
-  animation: page-enter 0.18s ease-out both;
+  animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* JS view content — fade in when LuCI replaces the spinner */
+#view > :not(.spinning) {
+  animation: page-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Style LuCI's "Loading view..." spinner as a centered glass card */
@@ -743,6 +721,13 @@ html[data-theme="dark"] .theme-icon-dark {
   z-index: 100;
 }
 
+/* Fade-out before navigation */
+body.page-leaving #content-wrap {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
 /* Push content down when sub-nav is visible */
 body.has-sub-nav #content-wrap {
   margin-top: calc(44px + 36px + var(--sidebar-gap) * 2 + 4px);
@@ -755,7 +740,7 @@ body.has-sub-nav #content-wrap {
 
 /* Mobile overlay */
 .sidebar-overlay {
-  display: block;
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -764,14 +749,11 @@ body.has-sub-nav #content-wrap {
   background: rgba(0, 0, 0, 0.3);
   z-index: calc(var(--z-sidebar) - 1);
   opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
   transition: opacity var(--transition-normal);
 
   &.active {
+    display: block;
     opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
   }
 }
 

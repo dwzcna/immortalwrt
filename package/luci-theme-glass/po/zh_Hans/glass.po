@@ -19,7 +19,7 @@ msgstr "浅色模式下用于活动元素、链接和按钮的强调色。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:128
 msgid "Active"
-msgstr "已启用"
+msgstr "已设置"
 
 #: htdocs/luci-static/resources/view/system/glass.js:33
 msgid "Auto (follow system)"
@@ -33,7 +33,7 @@ msgstr "深色模式下玻璃面板的背景模糊半径。"
 msgid ""
 "Backdrop blur radius for glass panels. Higher values create a more frosted "
 "appearance."
-msgstr "玻璃面板的背景模糊半径。数值越高，磨砂效果越明显。"
+msgstr "玻璃面板的背景模糊半径，数值越大磨砂效果越强。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:120
 msgid "Background"
@@ -42,13 +42,13 @@ msgstr "背景"
 #: htdocs/luci-static/resources/view/system/glass.js:98
 msgid ""
 "Background opacity of glass panels (0 = fully transparent, 1 = fully opaque)."
-msgstr "玻璃面板的背景不透明度（0 = 完全透明，1 = 完全不透明）。"
+msgstr "玻璃面板背景不透明度（0 = 完全透明，1 = 完全不透明）。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:114
 msgid ""
 "Background opacity of glass panels in dark mode (0 = fully transparent, 1 = "
 "fully opaque)."
-msgstr "深色模式下玻璃面板的背景不透明度（0 = 完全透明，1 = 完全不透明）。"
+msgstr "深色模式下玻璃面板背景不透明度（0 = 完全透明，1 = 完全不透明）。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:43
 msgid "Base font size"
@@ -57,18 +57,18 @@ msgstr "基础字体大小"
 #: htdocs/luci-static/resources/view/system/glass.js:91
 #: htdocs/luci-static/resources/view/system/glass.js:107
 msgid "Blur intensity (px)"
-msgstr "模糊强度（像素）"
+msgstr "模糊强度（px）"
 
 #: htdocs/luci-static/resources/view/system/glass.js:25
 msgid ""
 "Configure the appearance of the Glass theme. Changes take effect after "
 "saving and refreshing the page."
-msgstr "配置 Glass 主题的外观。保存并刷新页面后生效。"
+msgstr "配置 Glass 主题外观，保存后刷新页面生效。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:32
 msgid ""
 "Controls the overall appearance. \"Normal\" follows the system preference."
-msgstr "控制整体外观。“普通”模式跟随系统偏好。"
+msgstr "控制整体外观。“自动”模式跟随系统深浅色偏好。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:123
 msgid "Current background"
@@ -88,11 +88,11 @@ msgstr "常规"
 
 #: htdocs/luci-static/resources/view/system/glass.js:104
 msgid "Glass Effects — Dark Mode"
-msgstr "Glass 效果 - 深色模式"
+msgstr "玻璃效果 — 深色模式"
 
 #: htdocs/luci-static/resources/view/system/glass.js:88
 msgid "Glass Effects — Light Mode"
-msgstr "Glass 效果 - 浅色模式"
+msgstr "玻璃效果 — 浅色模式"
 
 #: htdocs/luci-static/resources/view/system/glass.js:24
 msgid "Glass Theme"
@@ -112,15 +112,15 @@ msgstr "授予 luci-theme-glass 访问权限"
 
 #: htdocs/luci-static/resources/view/system/glass.js:38
 msgid "Header status bar"
-msgstr "顶部状态栏"
+msgstr "顶栏状态条"
 
 #: ucode/template/themes/glass/sysauth.ut:111
 msgid "Invalid username and/or password! Please try again."
-msgstr "用户名或密码无效！请重试。"
+msgstr "用户名或密码错误，请重试。"
 
 #: ucode/template/themes/glass/header.ut:211
 msgid "JavaScript required!"
-msgstr "需要 JavaScript！"
+msgstr "需要启用 JavaScript！"
 
 #: htdocs/luci-static/resources/view/system/glass.js:47
 msgid "Large (16px)"
@@ -143,8 +143,161 @@ msgid ""
 "No background set. Upload an image or video named \"bg\" (e.g. bg.jpg, "
 "bg.png, bg.mp4) to /www/luci-static/glass/background/ via SCP."
 msgstr ""
-"未设置背景。请通过 SCP 将名为“bg”的图像或视频（例如 bg.jpg、bg.png、"
-"bg.mp4）上传到 /www/luci-static/glass/background/。"
+"未设置背景。请通过 SCP 将名为 \"bg\" 的图片或视频（如 bg.jpg、bg.png、"
+"bg.mp4）上传至 /www/luci-static/glass/background/。"
+
+#: htdocs/luci-static/resources/view/system/glass.js:180
+msgid ""
+"No background set. Select a wallpaper from the online gallery below, or "
+"upload a custom image via SCP to /www/luci-static/glass/background/"
+msgstr ""
+"未设置背景。从下方的在线壁纸库中选择，或通过 SCP 上传自定义图片到 /www/luci-"
+"static/glass/background/"
+
+#: htdocs/luci-static/resources/view/system/glass.js:187
+msgid "Online Wallpaper Gallery"
+msgstr "在线壁纸库"
+
+msgid "Wallpaper source"
+msgstr "壁纸源"
+
+msgid ""
+"Select online wallpaper source. Each source provides different styles of "
+"wallpapers."
+msgstr "选择在线壁纸源。每个来源提供不同风格的壁纸。"
+
+msgid "Picsum (Random photos)"
+msgstr "Picsum（随机照片）"
+
+msgid "Iciba Daily (China)"
+msgstr "金山词霸每日壁纸（中国）"
+
+msgid "Wallpaper count"
+msgstr "壁纸数量"
+
+msgid ""
+"Number of wallpapers to display (4-16, default: 8). Changes take effect "
+"after refreshing the page."
+msgstr "显示的壁纸数量（4-16，默认：8）。更改后需刷新页面生效。"
+
+#: htdocs/luci-static/resources/view/system/glass.js:238
+msgid "All"
+msgstr "全部"
+
+#: htdocs/luci-static/resources/view/system/glass.js:253
+msgid "No wallpapers available in this category"
+msgstr "该分类下没有可用壁纸"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Nature Landscape"
+msgstr "自然风光"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Mountain View"
+msgstr "山景"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Abstract Light"
+msgstr "抽象光效"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Abstract Dark"
+msgstr "深色抽象"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Technology"
+msgstr "科技"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Minimal"
+msgstr "极简"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Blue Gradient"
+msgstr "蓝色渐变"
+
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Purple Gradient"
+msgstr "紫色渐变"
+
+#: htdocs/luci-static/resources/view/system/glass.js:239
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Nature"
+msgstr "自然"
+
+#: htdocs/luci-static/resources/view/system/glass.js:239
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Abstract"
+msgstr "抽象"
+
+#: htdocs/luci-static/resources/view/system/glass.js:239
+#: htdocs/luci-static/resources/view/system/glass.js:270
+msgid "Gradient"
+msgstr "渐变"
+
+msgid "Next Batch"
+msgstr "下一批"
+
+#: htdocs/luci-static/resources/view/system/glass.js:283
+msgid "Apply"
+msgstr "应用"
+
+#: htdocs/luci-static/resources/view/system/glass.js:283
+msgid "Re-apply"
+msgstr "重新应用"
+
+#: htdocs/luci-static/resources/view/system/glass.js:294
+msgid "Custom URL"
+msgstr "自定义 URL"
+
+#: htdocs/luci-static/resources/view/system/glass.js:297
+msgid "Download & Apply"
+msgstr "下载并应用"
+
+#: htdocs/luci-static/resources/view/system/glass.js:300
+msgid "Enter a direct image URL to download and apply as background"
+msgstr "输入图片直链地址来下载并应用为背景"
+
+#: htdocs/luci-static/resources/view/system/glass.js:176
+msgid "Remove Background"
+msgstr "移除背景"
+
+#: htdocs/luci-static/resources/view/system/glass.js:358
+msgid "Downloading..."
+msgstr "下载中..."
+
+#: htdocs/luci-static/resources/view/system/glass.js:363
+msgid "Wallpaper applied successfully. Refresh the page to see the changes."
+msgstr "壁纸应用成功。刷新页面以查看更改。"
+
+#: htdocs/luci-static/resources/view/system/glass.js:365
+#: htdocs/luci-static/resources/view/system/glass.js:373
+msgid "Failed to download wallpaper"
+msgstr "下载壁纸失败"
+
+#: htdocs/luci-static/resources/view/system/glass.js:367
+msgid "Download failed"
+msgstr "下载失败"
+
+#: htdocs/luci-static/resources/view/system/glass.js:380
+msgid "Download failed: "
+msgstr "下载失败："
+
+#: htdocs/luci-static/resources/view/system/glass.js:390
+msgid "Remove current background?"
+msgstr "确定移除当前背景？"
+
+#: htdocs/luci-static/resources/view/system/glass.js:396
+msgid "Background removed. Refresh the page to see the changes."
+msgstr "背景已移除。刷新页面以查看更改。"
+
+#: htdocs/luci-static/resources/view/system/glass.js:398
+msgid "Failed to remove background"
+msgstr "移除背景失败"
+
+#: htdocs/luci-static/resources/view/system/glass.js:406
+msgid "Remove failed: "
+msgstr "移除失败："
 
 #: ucode/template/themes/glass/header.ut:201
 msgid "No password set!"
@@ -152,7 +305,7 @@ msgstr "未设置密码！"
 
 #: htdocs/luci-static/resources/view/system/glass.js:46
 msgid "Normal (14px)"
-msgstr "普通（14px）"
+msgstr "标准（14px）"
 
 #: htdocs/luci-static/resources/view/system/glass.js:97
 #: htdocs/luci-static/resources/view/system/glass.js:113
@@ -165,25 +318,25 @@ msgstr "密码"
 
 #: htdocs/luci-static/resources/view/system/glass.js:71
 msgid "Primary color (dark mode)"
-msgstr "深色模式主色"
+msgstr "主色调（深色模式）"
 
 #: htdocs/luci-static/resources/view/system/glass.js:55
 msgid "Primary color (light mode)"
-msgstr "浅色模式主色"
+msgstr "主色调（浅色模式）"
 
 #: htdocs/luci-static/resources/view/system/glass.js:44
 msgid ""
 "Scales all text in the theme. Larger values improve readability on high-DPI "
 "displays."
-msgstr "缩放主题中的所有文字。较大的值可提升高 DPI 显示屏上的可读性。"
+msgstr "缩放主题内所有文字，较大值可提升高分辨率屏幕的可读性。"
 
 #: htdocs/luci-static/resources/view/system/glass.js:39
 msgid ""
 "Show live system stats (CPU, RAM, network, uptime) in the header. Disable to "
 "reduce resource usage on low-end devices."
 msgstr ""
-"在顶部显示实时系统状态（CPU、内存、网络、运行时间）。在低性能设备上禁用可"
-"减少资源占用。"
+"在顶栏显示实时系统状态（CPU、内存、网络、运行时间），低性能设备可关闭以降低资"
+"源占用。"
 
 #: ucode/template/themes/glass/sysauth.ut:106
 msgid "Sign in to continue"
@@ -201,7 +354,7 @@ msgstr "主题模式"
 msgid ""
 "There is no password set on this router. Please configure a root password to "
 "protect the web interface."
-msgstr "此路由器尚未设置密码。请设置 root 密码以保护 Web 管理界面。"
+msgstr "此路由器未设置密码，请配置 root 密码以保护 Web 界面。"
 
 #: ucode/template/themes/glass/sysauth.ut:117
 msgid "Username"
@@ -210,115 +363,14 @@ msgstr "用户名"
 #: ucode/template/themes/glass/header.ut:212
 msgid ""
 "You must enable JavaScript in your browser or LuCI will not work properly."
-msgstr "必须在浏览器中启用 JavaScript，否则 LuCI 将无法正常工作。"
-
-#: htdocs/luci-static/resources/status-glass.js:79
-#: htdocs/luci-static/resources/status-glass.js:178
-msgid "CPU usage (%)"
-msgstr "CPU 使用率（%）"
-
-#: htdocs/luci-static/resources/status-glass.js:180
-msgid "core"
-msgstr "核心"
-
-#: htdocs/luci-static/resources/status-glass.js:180
-msgid "cores"
-msgstr "核心"
-
-#: htdocs/luci-static/resources/status-glass.js:252
-msgid "day"
-msgstr "天"
-
-#: htdocs/luci-static/resources/status-glass.js:252
-msgid "days"
-msgstr "天"
-
-#: htdocs/luci-static/resources/status-glass.js:253
-msgid "hour"
-msgstr "小时"
-
-#: htdocs/luci-static/resources/status-glass.js:253
-msgid "hours"
-msgstr "小时"
-
-#: htdocs/luci-static/resources/status-glass.js:225
-msgid "Link Speed"
-msgstr "链路速度"
-
-#: htdocs/luci-static/resources/status-glass.js:80
-#: htdocs/luci-static/resources/status-glass.js:193
-msgid "Memory usage (%)"
-msgstr "内存使用率（%）"
-
-#: htdocs/luci-static/resources/status-glass.js:152
-msgid "Network"
-msgstr "网络"
-
-#: htdocs/luci-static/resources/status-glass.js:254
-msgid "less than a minute"
-msgstr "少于一分钟"
-
-#: htdocs/luci-static/resources/status-glass.js:254
-msgid "minute"
-msgstr "分钟"
-
-#: htdocs/luci-static/resources/status-glass.js:254
-msgid "minutes"
-msgstr "分钟"
-
-#: htdocs/luci-static/resources/status-glass.js:81
-#: htdocs/luci-static/resources/status-glass.js:202
-msgid "Uptime"
-msgstr "运行时间"
-
-#: ucode/template/themes/glass/header.ut:154
-msgid "Toggle menu"
-msgstr "切换菜单"
-
-#: htdocs/luci-static/resources/status-glass.js:242
-msgid "%dd %dh"
-msgstr "%d天 %d小时"
-
-#: htdocs/luci-static/resources/status-glass.js:243
-msgid "%dh %dm"
-msgstr "%d小时 %d分钟"
-
-msgid "Balanced"
-msgstr "平衡"
-
-msgid ""
-"Balanced keeps blur on primary navigation and overlays. Reduced disables "
-"backdrop blur and most motion."
-msgstr "平衡模式仅在主导航和浮层保留模糊。精简模式会关闭背景模糊和大部分动效。"
-
-msgid "Effects profile"
-msgstr "效果档位"
-
-msgid "Expecting: %s"
-msgstr "期望：%s"
-
-msgid "Full"
-msgstr "完整"
-
-msgid "Invalid hexadecimal value"
-msgstr "无效的十六进制值"
-
-msgid "Main navigation"
-msgstr "主导航"
-
-msgid "Reduced"
-msgstr "精简"
-
-msgid "Sub-navigation"
-msgstr "子导航"
-
-msgid "a number between 0 and 1"
-msgstr "0 到 1 之间的数值"
+msgstr ""
 
 #: htdocs/luci-static/resources/view/system/glass.js
 msgid "Accordion mode"
 msgstr "手风琴模式"
 
 #: htdocs/luci-static/resources/view/system/glass.js
-msgid "Keep only one menu section expanded: opening a menu automatically collapses the others."
+msgid ""
+"Keep only one menu section expanded: opening a menu automatically collapses "
+"the others."
 msgstr "只保持一个菜单展开，打开一个菜单时自动收起其他菜单。"

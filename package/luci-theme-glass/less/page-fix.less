@@ -30,15 +30,15 @@
   &[style*="background-color"] {
     background-color: rgba(var(--zone-color-rgb), 0.50) !important;
     border-radius: var(--radius-md) var(--radius-md) 0 0;
-    backdrop-filter: var(--glass-detail-filter);
-    -webkit-backdrop-filter: var(--glass-detail-filter);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-bottom: 0.5px solid rgba(var(--zone-color-rgb), 0.20);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20);
   }
 
   &.active {
     /* match the parent card rounding — .ifacebox is overflow:visible, so
-       a square active header would stick out past the rounded corners */
+       a square active header sticks out past the rounded corners */
     border-radius: calc(var(--radius-md) - 0.5px) calc(var(--radius-md) - 0.5px) 0 0;
     background: linear-gradient(
       135deg,
@@ -49,8 +49,8 @@
     color: var(--color-text-inverse);
     padding: var(--space-sm) var(--space-lg);
     border-bottom: none;
-    backdrop-filter: var(--glass-detail-filter);
-    -webkit-backdrop-filter: var(--glass-detail-filter);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.20),
       inset 0 0 6px rgba(255, 255, 255, 0.08);
@@ -118,8 +118,8 @@ div[style*="display:grid;grid-template-columns:repeat"] {
       rgba(230, 240, 255, 0.12) 100%
     ) !important;
     background-color: transparent !important;
-    backdrop-filter: var(--glass-panel-filter) !important;
-    -webkit-backdrop-filter: var(--glass-panel-filter) !important;
+    backdrop-filter: blur(10px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
     border: 0.5px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow:
       0 4px 16px rgba(0, 0, 0, 0.08),
@@ -203,8 +203,8 @@ div[style*="display:grid;grid-template-columns:repeat"] {
   margin-right: 0.4em;
   min-width: max-content;
   background: rgba(255, 255, 255, 0.40);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px) saturate(180%);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
   border: 0.5px solid rgba(255, 255, 255, 0.20);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
@@ -226,8 +226,8 @@ div[style*="display:grid;grid-template-columns:repeat"] {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   border: 0.5px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.20),
     inset 0 0 4px rgba(255, 255, 255, 0.06);
@@ -357,8 +357,8 @@ progress {
     rgba(230, 240, 255, 0.12) 100%
   );
   background-color: transparent;
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.06),
@@ -380,8 +380,8 @@ progress {
     rgba(230, 240, 255, 0.12) 100%
   );
   background-color: transparent;
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.06),

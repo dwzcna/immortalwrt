@@ -15,12 +15,12 @@
   }
 
   #header {
-    left: var(--sidebar-gap);
+    left: 0;
   }
 
   #header-sub {
-    left: var(--sidebar-gap);
-    max-width: calc(100vw - var(--sidebar-gap) * 2);
+    left: 0;
+    max-width: calc(100vw - var(--sidebar-gap));
   }
 
   #content-wrap {
@@ -35,13 +35,13 @@
     display: block;
   }
 
-  body.sidebar-open {
-    overflow: hidden;
+  .sidebar-overlay.active {
+    display: block;
   }
 }
 
 /* Hide status indicators on small screens */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   #status-indicators {
     display: none !important;
   }
@@ -54,24 +54,6 @@
     --sidebar-width: 280px;
   }
 
-  #header {
-    gap: 2px;
-  }
-
-  #header-nav {
-    flex: 1;
-  }
-
-  .header-title {
-    max-width: 42vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .header-actions {
-    padding: 2px var(--space-xs);
-  }
-
   .cbi-value {
     flex-direction: column;
   }
@@ -80,18 +62,6 @@
     flex: none;
     padding-right: 0;
     padding-bottom: var(--space-xs);
-  }
-
-  .cbi-value-field,
-  .cbi-input-text,
-  .cbi-input-password,
-  input[type="text"],
-  input[type="password"],
-  input[type="number"],
-  select,
-  textarea {
-    width: 100%;
-    max-width: 100%;
   }
 
   .cbi-page-actions {
@@ -121,14 +91,6 @@
     overflow-x: auto;
   }
 
-  .glass-footer {
-    text-align: left;
-    overflow-wrap: anywhere;
-  }
-
-  /* Keep tables containing progressbars as real tables: display:block on
-     the table makes rows shrink-wrap to content, so memory/storage bars
-     end up with inconsistent narrow widths on mobile. */
   .table:has(.cbi-progressbar) {
     display: table;
   }

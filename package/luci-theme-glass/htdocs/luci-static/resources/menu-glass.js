@@ -3,15 +3,8 @@
 'require ui';
 
 return baseclass.extend({
-	sliderCleanups: null,
-
 	__init__: function() {
-		var self = this;
-		this.sliderCleanups = [];
-		L.resolveDefault(ui.menu.load(), null).then(function(tree) {
-			if (tree)
-				self.render(tree);
-		});
+		ui.menu.load().then(L.bind(this.render, this));
 	},
 
 	/* Icon SVG paths for top-level sidebar categories (stroke-based, 24x24 viewBox) */
@@ -37,10 +30,6 @@ return baseclass.extend({
 	render: function(tree) {
 		var container = document.getElementById('sidebar-nav');
 		if (!container) return;
-
-		for (var cleanup of this.sliderCleanups)
-			cleanup();
-		this.sliderCleanups = [];
 
 		/* Clear existing menu elements to prevent duplicates on re-render (e.g. Save & Apply) */
 		container.innerHTML = '';
@@ -118,45 +107,37 @@ return baseclass.extend({
 		var slider = E('div', { 'class': 'tab-slider' });
 		container.insertBefore(slider, container.firstChild);
 		var self = this;
-		var frame = null;
 
-		function position(animate) {
-			if (frame != null)
-				cancelAnimationFrame(frame);
-
-			frame = requestAnimationFrame(function() {
-				frame = null;
-				var active = container.querySelector('.header-tab.active, .sub-tab.active');
-				self.positionTabSlider(container, slider, active, animate);
-			});
-		}
-
-		/* Page links use native navigation; in-page tabs only move the slider. */
+		/* Attach click handlers to all tabs */
 		var tabs = container.querySelectorAll('.header-tab, .sub-tab');
-		if (!navigateOnClick) {
-			for (var i = 0; i < tabs.length; i++) {
-				(function(tab, sl) {
-					tab.addEventListener('click', function() {
+		for (var i = 0; i < tabs.length; i++) {
+			(function(tab, sl) {
+				tab.addEventListener('click', function(ev) {
+					if (navigateOnClick) {
+						/* Slide first, then navigate */
+						ev.preventDefault();
+						var prev = container.querySelector('.header-tab.active, .sub-tab.active');
+						if (prev) prev.classList.remove('active');
+						tab.classList.add('active');
 						self.positionTabSlider(container, sl, tab, true);
-					});
-				})(tabs[i], slider);
-			}
+						document.body.classList.add('page-leaving');
+						var href = tab.href;
+						setTimeout(function() {
+							window.location.href = href;
+						}, 180);
+					} else {
+						/* In-page tab switch — just move slider */
+						self.positionTabSlider(container, sl, tab, true);
+					}
+				});
+			})(tabs[i], slider);
 		}
 
 		/* Position on active tab */
-		position(false);
-
-		/* Keep the selector aligned after font loading, viewport changes and
-		 * translated labels alter tab widths. */
-		if (window.ResizeObserver) {
-			var observer = new ResizeObserver(function() { position(false); });
-			observer.observe(container);
-			this.sliderCleanups.push(function() { observer.disconnect(); });
-		} else {
-			var resize = function() { position(false); };
-			window.addEventListener('resize', resize);
-			this.sliderCleanups.push(function() { window.removeEventListener('resize', resize); });
-		}
+		requestAnimationFrame(function() {
+			var active = container.querySelector('.header-tab.active, .sub-tab.active');
+			self.positionTabSlider(container, slider, active, false);
+		});
 
 		return slider;
 	},
@@ -174,8 +155,7 @@ return baseclass.extend({
 			var item = E('a', {
 				'class': 'header-tab' + (isActive ? ' active' : ''),
 				'href': L.url(child.name),
-				'data-name': child.name,
-				'aria-current': isActive ? 'page' : null
+				'data-name': child.name
 			}, [ _(child.title) ]);
 
 			container.appendChild(item);
@@ -203,13 +183,10 @@ return baseclass.extend({
 				? L.url(url, child.name, subChildren[0].name)
 				: L.url(url, child.name);
 
-			var submenuId = 'glass-nav-' + i;
 			var item = E('a', {
 				'class': 'nav-item' + (isActive ? ' open' : ''),
 				'href': linkUrl,
-				'data-name': child.name,
-				'aria-expanded': hasChildren ? (isActive ? 'true' : 'false') : null,
-				'aria-controls': hasChildren ? submenuId : null
+				'data-name': child.name
 			}, [
 				E('span', { 'class': 'nav-label' }, [ _(child.title) ])
 			]);
@@ -234,10 +211,7 @@ return baseclass.extend({
 
 			if (hasChildren) {
 				var subMenu = E('div', {
-					'class': 'nav-sub' + (isActive ? ' open' : ''),
-					'id': submenuId,
-					'aria-hidden': isActive ? 'false' : 'true',
-					'inert': isActive ? null : ''
+					'class': 'nav-sub' + (isActive ? ' open' : '')
 				});
 
 				/* Sliding highlight indicator */
@@ -250,11 +224,27 @@ return baseclass.extend({
 
 					var subItem = E('a', {
 						'class': 'nav-item' + (isSubActive ? ' active' : ''),
-						'href': L.url(url, child.name, sub.name),
-						'aria-current': isSubActive ? 'page' : null
+						'href': L.url(url, child.name, sub.name)
 					}, [
 						E('span', { 'class': 'nav-label' }, [ _(sub.title) ])
 					]);
+
+					/* Slide highlight to clicked item before navigating */
+					(function(el, sl) {
+						el.addEventListener('click', function(ev) {
+							ev.preventDefault();
+							var prev = el.parentNode.querySelector('.nav-item.active');
+							if (prev) prev.classList.remove('active');
+							el.classList.add('active');
+							sl.style.top = el.offsetTop + 'px';
+							sl.style.height = el.offsetHeight + 'px';
+							sl.style.opacity = '1';
+							document.body.classList.add('page-leaving');
+							setTimeout(function() {
+								window.location.href = el.href;
+							}, 180);
+						});
+					})(subItem, slider);
 
 					subMenu.appendChild(subItem);
 				}
@@ -280,38 +270,23 @@ return baseclass.extend({
 
 				/* Bind click handler to toggle submenu */
 				(function(navItem, subEl) {
-					function toggleSubmenu() {
-						var open = !subEl.classList.contains('open');
-						if (open && document.documentElement.dataset.menuAccordion === '1') {
-							subEl.parentElement.querySelectorAll(':scope > .nav-sub.open, :scope > .nav-item.open').forEach(function(el) {
-								if (el === subEl || el === navItem) return;
-								el.classList.remove('open');
-								el.setAttribute('aria-expanded', 'false');
-								if (el.classList.contains('nav-sub')) {
-									el.setAttribute('aria-hidden', 'true');
-									el.setAttribute('inert', '');
-								}
-							});
-						}
-						subEl.classList.toggle('open', open);
-						navItem.classList.toggle('open', open);
-						navItem.setAttribute('aria-expanded', open ? 'true' : 'false');
-						subEl.setAttribute('aria-hidden', open ? 'false' : 'true');
-						if (open) subEl.removeAttribute('inert');
-						else subEl.setAttribute('inert', '');
-					}
-
 					navItem.addEventListener('click', function(ev) {
-						if (ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey)
-							return;
 						ev.preventDefault();
-						toggleSubmenu();
-					});
-
-					navItem.addEventListener('keydown', function(ev) {
-						if (ev.key === ' ') {
-							ev.preventDefault();
-							toggleSubmenu();
+						var isOpen = subEl.classList.contains('open');
+						if (isOpen) {
+							subEl.classList.remove('open');
+							navItem.classList.remove('open');
+						} else {
+							if (document.documentElement.dataset.menuAccordion === '1') {
+								subEl.parentElement.querySelectorAll('.nav-sub.open').forEach(function(el) {
+									el.classList.remove('open');
+								});
+								subEl.parentElement.querySelectorAll('.nav-item.open').forEach(function(el) {
+									if (el !== navItem) el.classList.remove('open');
+								});
+							}
+							subEl.classList.add('open');
+							navItem.classList.add('open');
 						}
 					});
 				})(item, subMenu);
@@ -326,17 +301,21 @@ return baseclass.extend({
 		if (!container) return E([]);
 
 		var children = ui.menu.getChildren(tree);
+		var activeNode = null;
+
 		if (children.length == 0)
 			return E([]);
 
-		/* footer.ut may have moved a CBI tabmenu into header-sub and hidden the
-		   original before the menu data loaded; restore in-content tabmenus */
+		/* footer.ut may have moved a CBI tabmenu into header-sub and hidden
+		   the original before the menu data loaded; restore in-content tabmenus
+		   or they stay invisible forever (server-rendered pages like OpenClash) */
 		document.querySelectorAll('.cbi-tabmenu').forEach(function(tm) {
 			if (tm.style.display === 'none')
 				tm.style.display = '';
 		});
+
+		/* Clear any CBI tabs that footer.ut added before menu loaded */
 		container.innerHTML = '';
-		container.setAttribute('data-source', 'menu');
 		container.classList.remove('active');
 		document.body.classList.remove('has-sub-nav');
 
@@ -346,9 +325,11 @@ return baseclass.extend({
 
 			container.appendChild(E('a', {
 				'class': 'sub-tab' + (isActive ? ' active' : ''),
-				'href': L.url(url, child.name),
-				'aria-current': isActive ? 'page' : null
+				'href': L.url(url, child.name)
 			}, [ _(child.title) ]));
+
+			if (isActive)
+				activeNode = child;
 		}
 
 		container.classList.add('active');

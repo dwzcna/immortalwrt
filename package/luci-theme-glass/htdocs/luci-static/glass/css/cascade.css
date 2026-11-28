@@ -22,8 +22,8 @@
   --font-weight-bold: 700;
   /* ---- Colors — Light mode ---- */
   --color-primary: #007AFF;
-  --color-primary-hover: color-mix(in srgb, var(--color-primary) 84%, #000);
-  --color-primary-active: color-mix(in srgb, var(--color-primary) 68%, #000);
+  --color-primary-hover: #0066d6;
+  --color-primary-active: #004fad;
   --color-primary-rgb: 0, 122, 255;
   --color-success: #34C759;
   --color-warning: #FF9500;
@@ -46,9 +46,6 @@
   --glass-bg-hover: rgba(255, 255, 255, 0.82);
   --glass-bg-strong: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.45);
-  --glass-chrome-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  --glass-panel-filter: none;
-  --glass-detail-filter: none;
   --glass-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.08);
   --glass-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.06);
   /* ---- Layout ---- */
@@ -59,10 +56,10 @@
   --content-max-width: none;
   --content-padding: 24px;
   /* ---- Radius ---- */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
   /* ---- Spacing ---- */
   --space-xs: 4px;
@@ -75,7 +72,7 @@
   /* ---- Transitions ---- */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
-  --transition-slow: 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   /* ---- Z-index ---- */
   --z-dropdown: 100;
   --z-sticky: 200;
@@ -128,7 +125,6 @@ body {
   color: var(--color-text);
   background: var(--color-bg);
   min-height: 100vh;
-  min-height: 100dvh;
   overflow-x: hidden;
 }
 a {
@@ -245,13 +241,12 @@ h4 {
   left: var(--sidebar-gap);
   width: var(--sidebar-width);
   height: calc(100vh - var(--sidebar-gap) * 2);
-  height: calc(100dvh - var(--sidebar-gap) * 2);
   z-index: var(--z-sidebar);
   /* True glassmorphism — multi-stop gradient, stronger for readability */
   background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.18) 20%, rgba(245, 250, 255, 0.2) 45%, rgba(255, 255, 255, 0.16) 70%, rgba(240, 245, 255, 0.19) 100%);
   background-color: rgba(255, 255, 255, 0.62);
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(30px) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(30px) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 0 12px rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-xl);
@@ -312,7 +307,7 @@ h4 {
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0;
+  letter-spacing: 0.05em;
 }
 .nav-item {
   display: flex;
@@ -334,8 +329,8 @@ h4 {
   background: rgba(255, 255, 255, 0.45);
   color: var(--color-text);
   font-weight: var(--font-weight-medium);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.6), inset 0 0 6px rgba(255, 255, 255, 0.15);
 }
 .nav-item .nav-icon {
@@ -433,8 +428,8 @@ h4 {
   opacity: 0;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 0.5px solid rgba(255, 255, 255, 0.45);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 0 4px rgba(255, 255, 255, 0.1);
   transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
@@ -497,8 +492,8 @@ h4 {
   /* True glassmorphism — multi-stop gradient like sub-nav */
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 0 8px rgba(255, 255, 255, 0.12);
 }
@@ -508,13 +503,6 @@ h4 {
   display: flex;
   align-items: center;
   position: relative;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-#header-nav::-webkit-scrollbar,
-#header-tabs::-webkit-scrollbar {
-  display: none;
 }
 .header-sep {
   width: 1px;
@@ -554,8 +542,8 @@ h4 {
   opacity: 0;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.6), inset 0 0 6px rgba(255, 255, 255, 0.15);
   transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   z-index: 0;
@@ -579,8 +567,8 @@ h4 {
   background-color: transparent;
   border: 0.5px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 1px 6px rgba(255, 255, 255, 0.1) inset;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
 }
 #status-indicators:empty {
   display: none;
@@ -594,7 +582,6 @@ h4 {
   color: var(--color-text-secondary);
   white-space: nowrap;
   cursor: default;
-  font-variant-numeric: tabular-nums;
   transition: color 0.3s ease;
   /* Level colors — neutral by default, color only when noteworthy */
 }
@@ -633,19 +620,6 @@ h4 {
   border-left: 0.5px solid rgba(128, 128, 128, 0.25);
   padding-left: var(--space-sm);
 }
-#status-indicators [data-indicator="cpu"] .indicator-value,
-#status-indicators [data-indicator="ram"] .indicator-value {
-  min-width: 3ch;
-  text-align: right;
-}
-#status-indicators [data-indicator="net"] .indicator-value {
-  min-width: 11ch;
-  text-align: right;
-}
-#status-indicators [data-indicator="uptime"] .indicator-value {
-  min-width: 8ch;
-  text-align: right;
-}
 /* ---- Glass pill badges (title + indicators) ---- */
 .header-title {
   font-size: var(--font-size-sm);
@@ -662,8 +636,8 @@ h4 {
   background-color: transparent;
   border: 0.5px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 1px 6px rgba(255, 255, 255, 0.1) inset;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
 }
 .header-actions {
   margin-left: auto;
@@ -678,8 +652,8 @@ h4 {
   background-color: transparent;
   border: 0.5px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 1px 6px rgba(255, 255, 255, 0.1) inset;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
 }
 .header-actions:empty {
   display: none;
@@ -702,8 +676,8 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);
@@ -751,8 +725,8 @@ html[data-theme="dark"] .theme-icon-dark {
   background-color: transparent;
   border: 0.5px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 1px 6px rgba(255, 255, 255, 0.1) inset;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
 }
 .theme-toggle-float .theme-icon {
   width: 18px;
@@ -767,9 +741,6 @@ html[data-theme="dark"] .theme-icon-dark {
   padding: var(--space-sm);
   margin-right: var(--space-md);
   color: var(--color-text);
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
 }
 .menu-toggle svg {
   width: 22px;
@@ -794,8 +765,8 @@ html[data-theme="dark"] .theme-icon-dark {
   /* Glass tab-list background — from glass-ui */
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 0 12px rgba(255, 255, 255, 0.1) inset;
   /* Hide scrollbar */
@@ -817,7 +788,7 @@ html[data-theme="dark"] .theme-icon-dark {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), backdrop-filter var(--transition-fast);
 }
 .sub-tab:hover {
   background: rgba(0, 0, 0, 0.04);
@@ -841,9 +812,11 @@ html[data-theme="dark"] .theme-icon-dark {
 @keyframes page-enter {
   from {
     opacity: 0;
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 /* ---- Main content area ---- */
@@ -851,10 +824,13 @@ html[data-theme="dark"] .theme-icon-dark {
   margin-left: calc(var(--sidebar-width) + var(--sidebar-gap) * 2);
   margin-top: calc(44px + var(--sidebar-gap) * 2);
   min-height: calc(100vh - 44px - var(--sidebar-gap) * 2);
-  min-height: calc(100dvh - 44px - var(--sidebar-gap) * 2);
   padding: var(--content-padding);
   transition: margin-left var(--transition-slow);
-  animation: page-enter 0.18s ease-out both;
+  animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* JS view content — fade in when LuCI replaces the spinner */
+#view > :not(.spinning) {
+  animation: page-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 /* Style LuCI's "Loading view..." spinner as a centered glass card */
 #view > .spinning {
@@ -865,11 +841,17 @@ html[data-theme="dark"] .theme-icon-dark {
   padding: var(--space-lg) var(--space-xl);
   border-radius: var(--radius-lg);
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   z-index: 100;
+}
+/* Fade-out before navigation */
+body.page-leaving #content-wrap {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 /* Push content down when sub-nav is visible */
 body.has-sub-nav #content-wrap {
@@ -881,7 +863,7 @@ body.has-sub-nav #content-wrap {
 }
 /* Mobile overlay */
 .sidebar-overlay {
-  display: block;
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -890,14 +872,11 @@ body.has-sub-nav #content-wrap {
   background: rgba(0, 0, 0, 0.3);
   z-index: calc(var(--z-sidebar) - 1);
   opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
   transition: opacity var(--transition-normal);
 }
 .sidebar-overlay.active {
+  display: block;
   opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
 }
 /* ---- Page title ---- */
 .page-title {
@@ -938,8 +917,8 @@ body.has-sub-nav #content-wrap {
 /* ---- CBI Sections ---- */
 .cbi-section {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-lg);
@@ -1138,73 +1117,6 @@ select:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
 }
-input[type="color"].glass-color-input {
-  width: 4rem;
-  height: 2.5rem;
-  padding: 2px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-elevated);
-  cursor: pointer;
-}
-.glass-range-control {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  width: min(100%, 400px);
-}
-input[type="range"].glass-range {
-  appearance: none;
-  -webkit-appearance: none;
-  flex: 1;
-  min-width: 120px;
-  height: 28px;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-}
-input[type="range"].glass-range::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: var(--radius-full);
-  background: var(--color-bg-secondary);
-}
-input[type="range"].glass-range::-webkit-slider-thumb {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  margin-top: -7px;
-  border: 2px solid var(--color-bg-elevated);
-  border-radius: 50%;
-  background: var(--color-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-}
-input[type="range"].glass-range::-moz-range-track {
-  height: 4px;
-  border: none;
-  border-radius: var(--radius-full);
-  background: var(--color-bg-secondary);
-}
-input[type="range"].glass-range::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--color-bg-elevated);
-  border-radius: 50%;
-  background: var(--color-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-}
-.glass-range-value {
-  min-width: 4.5ch;
-  padding: 2px var(--space-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-elevated);
-  color: var(--color-text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
 /* ---- Buttons — glass-ui pattern ---- */
 .btn,
 .cbi-button {
@@ -1212,7 +1124,6 @@ input[type="range"].glass-range::-moz-range-thumb {
   align-items: center;
   justify-content: center;
   padding: var(--space-sm) var(--space-lg);
-  min-height: 34px;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-md);
@@ -1221,11 +1132,11 @@ input[type="range"].glass-range::-moz-range-thumb {
   background-color: rgba(255, 255, 255, 0.55);
   border: 0.5px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.1);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
   color: var(--color-text);
   cursor: pointer;
-  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+  transition: all var(--transition-fast);
   text-decoration: none;
   white-space: nowrap;
   gap: var(--space-xs);
@@ -1340,8 +1251,8 @@ input[type="range"].glass-range::-moz-range-thumb {
   /* Match header nav bar glass style */
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 0 8px rgba(255, 255, 255, 0.12);
 }
@@ -1492,7 +1403,7 @@ table.cbi-section-table .tr:hover .td {
   white-space: nowrap;
   word-break: break-word;
   line-height: 1.5em;
-  color: var(--color-text);
+  color: var(--color-text-primary);
   border: 0.5px solid var(--color-border);
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   border-right: none;
@@ -1516,7 +1427,7 @@ table.cbi-section-table .tr:hover .td {
   white-space: nowrap;
   font-size: var(--font-size-sm);
   line-height: 1.5rem;
-  color: var(--color-text);
+  color: var(--color-text-primary);
   border: 0.5px solid var(--color-border);
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   border-right-width: 0;
@@ -1597,12 +1508,6 @@ table.cbi-section-table .tr:hover .td {
   color: var(--color-text-tertiary);
   font-style: italic;
 }
-.cbi-dropdown ul:not(.dropdown) li input[type="checkbox"] {
-  display: none;
-}
-.cbi-dropdown[open] li input[type="checkbox"] {
-  pointer-events: none;
-}
 .cbi-dropdown > .more,
 .cbi-dropdown > .open {
   flex-shrink: 0;
@@ -1637,8 +1542,8 @@ table.cbi-section-table .tr:hover .td {
   padding: var(--space-xs);
   color: var(--color-text);
   background: var(--glass-bg-strong, rgba(255, 255, 255, 0.85));
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(30px) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(30px) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
@@ -1700,8 +1605,8 @@ table.cbi-section-table .tr:hover .td {
   /* Glass tab bar — match header/sub-nav pattern */
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04), inset 0 0 0.5px rgba(255, 255, 255, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.1);
 }
@@ -1712,7 +1617,7 @@ table.cbi-section-table .tr:hover .td {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  transition: color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all var(--transition-fast);
   text-decoration: none;
 }
 .cbi-tabmenu li a:hover {
@@ -1722,8 +1627,8 @@ table.cbi-section-table .tr:hover .td {
 .cbi-tabmenu li.cbi-tab a {
   background: rgba(255, 255, 255, 0.45);
   color: var(--color-text);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.6), inset 0 0 6px rgba(255, 255, 255, 0.15);
 }
 /* Tab content panels — hide inactive tabs.
@@ -1731,7 +1636,7 @@ table.cbi-section-table .tr:hover .td {
    Individual form fields may have data-tab-title only — don't hide those.
    IMPORTANT: Do NOT use !important here — LuCI's dependency system needs
    to evaluate fields in all tabs during page load to set proper visibility. */
-[data-tab-title]:not([data-tab-active="true"]) {
+[data-tab][data-tab-title]:not([data-tab-active="true"]) {
   height: 0;
   opacity: 0;
   overflow: hidden;
@@ -1740,13 +1645,6 @@ table.cbi-section-table .tr:hover .td {
   margin-top: 0;
   margin-bottom: 0;
   border-width: 0;
-}
-
-[data-tab-active="true"] {
-  opacity: 1;
-  height: auto;
-  overflow: visible;
-  transition: opacity 0.25s ease-in;
 }
 /* ---- Alerts / Messages ----
    Only the container is tinted — body text stays at `--color-text` so
@@ -1764,8 +1662,8 @@ table.cbi-section-table .tr:hover .td {
   background: rgba(90, 200, 250, 0.08);
   border: 0.5px solid rgba(90, 200, 250, 0.2);
   border-left: 3px solid var(--color-info);
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 6px rgba(255, 255, 255, 0.08);
 }
 .alert-message > h4,
@@ -1831,8 +1729,8 @@ table.cbi-section-table .tr:hover .td {
   border-radius: var(--radius-full);
   transition: width var(--transition-normal);
   background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.75) 0%, rgba(var(--color-primary-rgb), 0.6) 50%, rgba(var(--color-primary-rgb), 0.7) 100%);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 6px rgba(255, 255, 255, 0.1);
 }
 .cbi-progressbar::after {
@@ -1899,8 +1797,8 @@ input[type="radio"] {
 }
 #modal_overlay > .modal {
   background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(30px) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(30px) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: var(--glass-shadow-lg);
   border-radius: var(--radius-xl);
@@ -1909,14 +1807,12 @@ input[type="radio"] {
   min-width: 270px;
   width: calc(100% - var(--space-2xl) * 2);
   max-height: calc(100vh - 4em);
-  max-height: calc(100dvh - 4em);
   overflow-y: auto;
   z-index: calc(var(--z-modal) + 1);
   /* Flatten any .cbi-section nested directly inside a modal — the modal
        itself already has glass background + padding, so the inner section
        creates a visible box-in-box with extra padding
        ([#6](https://github.com/rchen14b/luci-theme-glass/issues/6)). */
-  /* Let open dropdowns render beyond the modal's scroll clip. */
 }
 #modal_overlay > .modal > * {
   max-width: 100%;
@@ -2057,6 +1953,15 @@ body.modal-overlay-active #modal_overlay {
   gap: 8px;
   justify-content: flex-end;
 }
+/* Selected-item checkboxes are only meaningful in the open list;
+   hide them in the collapsed display row, and let row clicks pass
+   through the checkbox in the open list (#13) */
+.cbi-dropdown ul:not(.dropdown) li input[type="checkbox"] {
+  display: none;
+}
+.cbi-dropdown[open] li input[type="checkbox"] {
+  pointer-events: none;
+}
 /* ==========================================================================
    Login Page (sysauth) — luci-theme-glass
    ========================================================================== */
@@ -2065,15 +1970,14 @@ body.modal-overlay-active #modal_overlay {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  min-height: 100svh;
   padding: var(--space-xl);
 }
 .login-card {
   /* True frosted glass — translucent, not white box */
   background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.2) 25%, rgba(245, 250, 255, 0.22) 50%, rgba(255, 255, 255, 0.18) 75%, rgba(240, 248, 255, 0.21) 100%);
   background-color: rgba(255, 255, 255, 0.55);
-  backdrop-filter: var(--glass-chrome-filter);
-  -webkit-backdrop-filter: var(--glass-chrome-filter);
+  backdrop-filter: blur(30px) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(30px) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-xl);
@@ -2126,8 +2030,8 @@ body.modal-overlay-active #modal_overlay {
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   color: var(--color-text);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 0 4px rgba(255, 255, 255, 0.08);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
@@ -2145,8 +2049,8 @@ body.modal-overlay-active #modal_overlay {
   /* Glass button — glass-ui .glass-bg pattern */
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04), inset 0 0 0.5px rgba(255, 255, 255, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.1);
   color: var(--color-text);
@@ -2154,7 +2058,7 @@ body.modal-overlay-active #modal_overlay {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: opacity var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 .login-btn:hover {
   opacity: 0.9;
@@ -2181,17 +2085,18 @@ body.modal-overlay-active #modal_overlay {
 @media (max-width: 1024px) {
   #sidebar {
     transform: translateX(calc(-100% - var(--sidebar-gap)));
+    /* overlay sidebar must sit above the fixed header/sub-nav bars */
     z-index: calc(var(--z-header) + 1);
   }
   #sidebar.open {
     transform: translateX(0);
   }
   #header {
-    left: var(--sidebar-gap);
+    left: 0;
   }
   #header-sub {
-    left: var(--sidebar-gap);
-    max-width: calc(100vw - var(--sidebar-gap) * 2);
+    left: 0;
+    max-width: calc(100vw - var(--sidebar-gap));
   }
   #content-wrap {
     margin-left: 0;
@@ -2202,12 +2107,12 @@ body.modal-overlay-active #modal_overlay {
   .menu-toggle {
     display: block;
   }
-  body.sidebar-open {
-    overflow: hidden;
+  .sidebar-overlay.active {
+    display: block;
   }
 }
 /* Hide status indicators on small screens */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   #status-indicators {
     display: none !important;
   }
@@ -2218,20 +2123,6 @@ body.modal-overlay-active #modal_overlay {
     --content-padding: 16px;
     --sidebar-width: 280px;
   }
-  #header {
-    gap: 2px;
-  }
-  #header-nav {
-    flex: 1;
-  }
-  .header-title {
-    max-width: 42vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .header-actions {
-    padding: 2px var(--space-xs);
-  }
   .cbi-value {
     flex-direction: column;
   }
@@ -2239,17 +2130,6 @@ body.modal-overlay-active #modal_overlay {
     flex: none;
     padding-right: 0;
     padding-bottom: var(--space-xs);
-  }
-  .cbi-value-field,
-  .cbi-input-text,
-  .cbi-input-password,
-  input[type="text"],
-  input[type="password"],
-  input[type="number"],
-  select,
-  textarea {
-    width: 100%;
-    max-width: 100%;
   }
   .cbi-page-actions {
     flex-direction: column;
@@ -2272,14 +2152,9 @@ body.modal-overlay-active #modal_overlay {
     display: block;
     overflow-x: auto;
   }
-  .glass-footer {
-    text-align: left;
-    overflow-wrap: anywhere;
-  }
-.table:has(.cbi-progressbar) {
+  .table:has(.cbi-progressbar) {
     display: table;
   }
-
 }
 /* ==========================================================================
    Page Fixes — LuCI-specific overrides and quirks
@@ -2291,8 +2166,8 @@ body.modal-overlay-active #modal_overlay {
 /* ---- Interface boxes (general) ---- */
 .ifacebox {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   display: inline-flex;
@@ -2314,19 +2189,21 @@ body.modal-overlay-active #modal_overlay {
 .ifacebox-head[style*="background-color"] {
   background-color: rgba(var(--zone-color-rgb), 0.5) !important;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border-bottom: 0.5px solid rgba(var(--zone-color-rgb), 0.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 .ifacebox-head.active {
+  /* match the parent card rounding — .ifacebox is overflow:visible, so
+       a square active header sticks out past the rounded corners */
   border-radius: calc(var(--radius-md) - 0.5px) calc(var(--radius-md) - 0.5px) 0 0;
   background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.75) 0%, rgba(var(--color-primary-rgb), 0.6) 50%, rgba(var(--color-primary-rgb), 0.7) 100%);
   color: var(--color-text-inverse);
   padding: var(--space-sm) var(--space-lg);
   border-bottom: none;
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 0 6px rgba(255, 255, 255, 0.08);
 }
 .ifacebox-body {
@@ -2362,7 +2239,6 @@ body.modal-overlay-active #modal_overlay {
   align-items: center;
   vertical-align: middle;
 }
-
 /* ---- Port status grid (29_ports.js) ---- */
 div[style*="display:grid;grid-template-columns:repeat"] {
   gap: var(--space-md) !important;
@@ -2376,8 +2252,8 @@ div[style*="display:grid;grid-template-columns:repeat"] > .ifacebox {
   /* Glass-ui card pattern */
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%) !important;
   background-color: transparent !important;
-  backdrop-filter: var(--glass-panel-filter) !important;
-  -webkit-backdrop-filter: var(--glass-panel-filter) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
   border: 0.5px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 0 12px rgba(255, 255, 255, 0.1) inset !important;
   /* Zone color bar */
@@ -2444,8 +2320,8 @@ div[style*="display:grid;grid-template-columns:repeat"] > .ifacebox > .ifacebox-
   margin-right: 0.4em;
   min-width: max-content;
   background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(8px) saturate(180%);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
   border: 0.5px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
@@ -2463,8 +2339,8 @@ div[style*="display:grid;grid-template-columns:repeat"] > .ifacebox > .ifacebox-
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   border: 0.5px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: var(--glass-detail-filter);
-  -webkit-backdrop-filter: var(--glass-detail-filter);
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 0 4px rgba(255, 255, 255, 0.06);
 }
 .zonebadge .ifacebadge {
@@ -2483,8 +2359,8 @@ div[style*="display:grid;grid-template-columns:repeat"] > .ifacebox > .ifacebox-
   bottom: 100%;
   margin-bottom: var(--space-xs);
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-sm);
@@ -2565,8 +2441,8 @@ progress::-moz-progress-bar {
   padding: var(--space-lg);
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 6px rgba(255, 255, 255, 0.08);
 }
@@ -2576,8 +2452,8 @@ progress::-moz-progress-bar {
   padding: var(--space-lg);
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.12) 25%, rgba(240, 248, 255, 0.13) 50%, rgba(255, 255, 255, 0.11) 75%, rgba(230, 240, 255, 0.12) 100%);
   background-color: transparent;
-  backdrop-filter: var(--glass-panel-filter);
-  -webkit-backdrop-filter: var(--glass-panel-filter);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 6px rgba(255, 255, 255, 0.08);
 }
@@ -2743,97 +2619,4 @@ progress::-moz-progress-bar {
 [data-page="admin-system-opkg"] .controls > div:nth-child(4) > .control-group,
 [data-page="admin-system-package-manager"] .controls > div:nth-child(4) > .control-group {
   gap: var(--space-sm) !important;
-}
-/* ==========================================================================
-   Effect profiles, accessibility and compositing fallbacks
-   ========================================================================== */
-html[data-glass-effects="full"] {
-  --glass-panel-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  --glass-detail-filter: blur(8px) saturate(160%);
-}
-html[data-glass-effects="reduced"] {
-  --glass-chrome-filter: none;
-  --glass-panel-filter: none;
-  --glass-detail-filter: none;
-  --glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --glass-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-html[data-glass-effects="reduced"] #sidebar,
-html[data-glass-effects="reduced"] #header,
-html[data-glass-effects="reduced"] #header-sub,
-html[data-glass-effects="reduced"] #modal_overlay > .modal,
-html[data-glass-effects="reduced"] .login-card,
-html[data-glass-effects="reduced"] .cbi-dropdown[open] > ul.dropdown {
-  background-image: none;
-  background-color: var(--glass-bg-strong);
-}
-html[data-glass-effects="reduced"] #bg-wrap video {
-  display: none;
-}
-html[data-glass-effects="reduced"] *,
-html[data-glass-effects="reduced"] *::before,
-html[data-glass-effects="reduced"] *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-  transition-delay: 0ms !important;
-}
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-button,
-.btn,
-.cbi-button,
-.nav-item,
-.header-tab,
-.sub-tab {
-  touch-action: manipulation;
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root {
-    --glass-chrome-filter: none !important;
-    --glass-panel-filter: none !important;
-    --glass-detail-filter: none !important;
-  }
-}
-@media (prefers-reduced-transparency: reduce) {
-  :root {
-    --glass-chrome-filter: none !important;
-    --glass-panel-filter: none !important;
-    --glass-detail-filter: none !important;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
-  }
-}
-@media (prefers-contrast: more) {
-  :root {
-    --color-border: rgba(0, 0, 0, 0.24);
-    --color-border-strong: rgba(0, 0, 0, 0.4);
-    --color-separator: rgba(0, 0, 0, 0.28);
-    --glass-border: rgba(255, 255, 255, 0.72);
-  }
-}
-@media (forced-colors: active) {
-  #sidebar,
-  #header,
-  #header-sub,
-  .cbi-section,
-  .btn,
-  .cbi-button,
-  .login-card,
-  #modal_overlay > .modal {
-    background-image: none;
-    border: 1px solid CanvasText;
-    box-shadow: none;
-  }
 }
